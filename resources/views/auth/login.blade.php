@@ -68,9 +68,14 @@
 
         {{-- Brand Header --}}
         <div class="text-center mb-space-xl">
-            <a href="{{ route('home') }}" class="inline-flex flex-col items-center gap-1">
-                <span class="font-serif text-2xl tracking-[0.25em] text-primary uppercase font-bold">JURAGAN BATIK</span>
-                <span class="text-[10px] tracking-[0.3em] text-secondary uppercase font-semibold">Surakarta • Est. 1928</span>
+            <a href="{{ route('home') }}" class="inline-flex flex-col items-center gap-2">
+                <img src="{{ asset('images/logo.png') }}"
+                     alt="Juragan Batik"
+                     class="h-16 w-auto object-contain"/>
+                <div class="flex flex-col items-center">
+                    <span class="font-serif text-2xl tracking-[0.25em] text-primary uppercase font-bold">JURAGAN BATIK</span>
+                    <span class="text-[10px] tracking-[0.3em] text-secondary uppercase font-semibold">Surakarta • Est. 1928</span>
+                </div>
             </a>
         </div>
 

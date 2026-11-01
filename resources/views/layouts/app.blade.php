@@ -141,9 +141,15 @@
 
         {{-- Logo + Nav --}}
         <div class="flex items-center gap-space-xl">
-            <a class="flex flex-col" href="{{ route('home') }}">
-                <span class="font-title-lg text-title-lg tracking-[0.25em] text-primary uppercase">JURAGAN BATIK</span>
-                <span class="font-label-sm text-label-sm tracking-[0.3em] text-secondary uppercase">Surakarta • Est. 1928</span>
+            <a class="flex items-center gap-3" href="{{ route('home') }}">
+                <img src="{{ asset('images/logo.png') }}"
+                     alt="Juragan Batik"
+                     class="h-10 w-auto object-contain flex-shrink-0"
+                     style="mix-blend-mode: multiply;"/>
+                <div class="flex flex-col">
+                    <span class="font-title-lg text-title-lg tracking-[0.25em] text-primary uppercase leading-tight">JURAGAN BATIK</span>
+                    <span class="font-label-sm text-label-sm tracking-[0.3em] text-secondary uppercase">Surakarta • Est. 1928</span>
+                </div>
             </a>
             <nav class="hidden lg:flex items-center gap-space-lg">
                 <a href="{{ route('home') }}"
@@ -226,6 +232,11 @@
 
     {{-- Mobile Nav --}}
     <div id="mobileNav" class="hidden lg:hidden bg-surface border-t border-surface-container px-margin-mobile py-space-md flex flex-col gap-space-sm">
+        {{-- Logo mobile --}}
+        <div class="flex items-center gap-2 pb-space-sm border-b border-surface-container mb-space-xs">
+            <img src="{{ asset('images/logo.png') }}" alt="Juragan Batik" class="h-8 w-auto object-contain"/>
+            <span class="font-label-lg text-label-lg text-primary font-bold tracking-widest uppercase">Juragan Batik</span>
+        </div>
         <a href="{{ route('home') }}" class="font-label-lg text-label-lg {{ request()->routeIs('home') ? 'text-primary font-bold' : 'text-on-surface-variant' }} py-space-xs">Beranda</a>
         <a href="{{ route('catalog') }}" class="font-label-lg text-label-lg {{ request()->routeIs('catalog') ? 'text-primary font-bold' : 'text-on-surface-variant' }} py-space-xs">Katalog Batik</a>
         <a href="{{ route('about') }}" class="font-label-lg text-label-lg {{ request()->routeIs('about') ? 'text-primary font-bold' : 'text-on-surface-variant' }} py-space-xs">Filosofi Motif</a>

@@ -3,33 +3,9 @@
 
 @push('styles')
 <style>
-    .thumb-img {
-        width: 56px;
-        height: 56px;
-        min-width: 56px;   /* mencegah gambar menyempit */
-        min-height: 56px;
-        object-fit: cover;
-        border-radius: 8px;
-        display: block;
-        flex-shrink: 0;
-    }
-    .thumb-placeholder {
-        width: 56px;
-        height: 56px;
-        min-width: 56px;
-        min-height: 56px;
-        border-radius: 8px;
-        background: #f1ede7;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
-    /* Kolom foto selalu lebar 80px, tidak bisa dipersempit */
-    .col-foto {
-        width: 80px;
-        min-width: 80px;
-    }
+    .thumb-img { width:56px; height:56px; object-fit:cover; border-radius:8px; }
+    .thumb-placeholder { width:56px; height:56px; border-radius:8px; background:#f1ede7;
+                         display:flex; align-items:center; justify-content:center; }
     /* Tailwind pagination override */
     nav[role="navigation"] svg { display:inline; }
     nav[role="navigation"] span, nav[role="navigation"] a {

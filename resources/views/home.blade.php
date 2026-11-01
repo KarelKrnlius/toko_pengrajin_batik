@@ -86,9 +86,10 @@
     </div>
 </section>
 
-{{-- ══════════════ PRODUK TERBARU ══════════════ --}}
+{{-- ══════════════ PRODUK SLIDESHOW ══════════════ --}}
 <section class="w-full py-space-xl bg-surface">
     <div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin">
+
         <div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md mb-space-xl">
             <div class="flex flex-col gap-space-xs">
                 <span class="font-label-md text-label-md text-secondary tracking-[0.2em] uppercase font-bold">Kurasi Unggulan Musim Ini</span>
@@ -104,64 +105,36 @@
             </a>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
-            @forelse ($latestProducts as $product)
-            <div class="bg-surface-container-lowest rounded-lg shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden">
-                <div class="relative aspect-[4/5] overflow-hidden bg-surface-container">
-                    @if ($product->image)
-                        <img src="{{ Storage::url($product->image) }}"
-                             alt="{{ $product->name }}"
-                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
-                    @else
-                        <div class="w-full h-full flex items-center justify-center bg-surface-container">
-                            <span class="material-symbols-outlined text-[80px] text-outline">draw</span>
-                        </div>
-                    @endif
-                    <div class="absolute top-4 left-4 flex flex-col gap-1">
-                        <span class="bg-primary text-on-primary font-label-sm text-label-sm px-space-sm py-0.5 rounded uppercase tracking-wider shadow">{{ $product->category->name ?? 'Batik' }}</span>
-                    </div>
-                    <button class="absolute top-4 right-4 w-9 h-9 rounded-full bg-surface-container-lowest/80 backdrop-blur-sm hover:bg-surface-container-lowest flex items-center justify-center text-primary shadow transition-colors" title="Simpan ke Favorit">
-                        <span class="material-symbols-outlined text-[20px]">favorite</span>
-                    </button>
-                </div>
-                <div class="p-space-lg flex flex-col flex-1 justify-between gap-space-md">
-                    <div class="flex flex-col gap-space-xs">
-                        <div class="flex items-center justify-between">
-                            <span class="font-label-sm text-label-sm text-secondary tracking-widest uppercase">{{ $product->category->name ?? '-' }}</span>
-                            <div class="flex items-center gap-1 text-secondary">
-                                <span class="material-symbols-outlined text-[16px]">grade</span>
-                                <span class="font-label-sm text-label-sm font-bold text-on-surface">5.0</span>
-                            </div>
-                        </div>
-                        <h3 class="font-title-lg text-title-lg text-primary font-bold">{{ $product->name }}</h3>
-                        <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">{{ Str::limit($product->description, 100) }}</p>
-                    </div>
-                    <div class="flex flex-col gap-space-sm pt-space-xs">
-                        <div class="flex items-baseline justify-between">
-                            <span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Investasi Mahakarya</span>
-                            <span class="font-headline-sm text-headline-sm text-primary font-bold">Rp {{ number_format($product->price, 0, ',', '.') }}</span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-space-xs">
-                            <a href="{{ route('product.show', $product->id) }}"
-                               class="inline-flex items-center justify-center py-space-sm px-space-sm bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md rounded transition-colors text-center">
-                                Detail Produk
-                            </a>
-                            <a href="https://wa.me/6281234567890?text={{ urlencode('Halo, saya ingin memesan: ' . $product->name) }}" target="_blank" rel="noopener"
-                               class="inline-flex items-center justify-center gap-1 py-space-sm px-space-sm bg-primary hover:bg-secondary text-on-primary font-label-md text-label-md rounded transition-colors shadow">
-                                <span class="material-symbols-outlined text-[16px]">shopping_bag</span>
-                                <span>Beli Sekarang</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            @empty
-            <div class="col-span-3 text-center py-16 text-on-surface-variant">
-                <span class="material-symbols-outlined text-[64px] block mb-4">inventory_2</span>
-                <p class="font-body-md text-body-md">Belum ada produk tersedia.</p>
-            </div>
-            @endforelse
+        @if($allProducts->isEmpty())
+        <div class="col-span-3 text-center py-16 text-on-surface-variant">
+            <span class="material-symbols-outlined text-[64px] block mb-4">inventory_2</span>
+            <p class="font-body-md text-body-md">Belum ada produk tersedia.</p>
         </div>
+        @else
+
+        {{-- Grid 3 kartu --}}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg" id="productSlider">
+            {{-- 3 slot kartu -- diisi JS --}}
+            @for($i = 0; $i < 3; $i++)
+            <div class="product-card bg-surface-container-lowest rounded-lg shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col group overflow-hidden opacity-0"
+                 style="transition: opacity 0.4s ease, transform 0.4s ease;">
+            </div>
+            @endfor
+        </div>
+
+        {{-- Dot indicators --}}
+        <div class="flex justify-center gap-2 mt-space-lg" id="dotIndicators"></div>
+
+        {{-- Auto-play progress bar --}}
+        <div class="mt-space-sm max-w-xs mx-auto">
+            <div class="w-full h-0.5 bg-surface-container-high rounded-full overflow-hidden">
+                <div id="slideProgress"
+                     class="h-full rounded-full"
+                     style="background:#904c2e; width:0%; transition:width linear;"></div>
+            </div>
+        </div>
+
+        @endif
     </div>
 </section>
 
@@ -229,14 +202,177 @@
 
 @push('scripts')
 <script>
-document.querySelectorAll('button[title="Simpan ke Favorit"]').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-        e.preventDefault();
-        const icon = this.querySelector('.material-symbols-outlined');
-        const filled = icon.style.fontVariationSettings === "'FILL' 1";
-        icon.style.fontVariationSettings = filled ? "'FILL' 0" : "'FILL' 1";
-        icon.style.color = filled ? '' : '#ba1a1a';
-    });
-});
+(function () {
+    // ── Data produk dari Laravel ──────────────────────────────────
+    const products = @json($allProducts);
+
+    if (!products.length) return;
+
+    const SLOTS      = 3;          // jumlah kartu tampil
+    const INTERVAL   = 4000;       // ms antar rotate
+    const ANIM       = 400;        // ms durasi fade
+
+    let currentStart = 0;          // index produk di kartu pertama
+    let timer        = null;
+    let progressTimer= null;
+
+    const slider     = document.getElementById('productSlider');
+    const dots       = document.getElementById('dotIndicators');
+    const progressEl = document.getElementById('slideProgress');
+    const cards      = slider ? [...slider.querySelectorAll('.product-card')] : [];
+
+    if (!slider || !cards.length) return;
+
+    // ── Buat dots ─────────────────────────────────────────────────
+    function buildDots() {
+        if (!dots) return;
+        dots.innerHTML = '';
+        const total = Math.ceil(products.length / SLOTS);
+        for (let i = 0; i < total; i++) {
+            const d = document.createElement('button');
+            d.className = 'w-2 h-2 rounded-full transition-all duration-300';
+            d.style.background = '#d4c3bb';
+            d.addEventListener('click', () => goTo(i * SLOTS));
+            dots.appendChild(d);
+        }
+    }
+
+    function updateDots() {
+        if (!dots) return;
+        const page  = Math.floor(currentStart / SLOTS);
+        [...dots.children].forEach((d, i) => {
+            d.style.background = i === page ? '#904c2e' : '#d4c3bb';
+            d.style.width      = i === page ? '1.5rem' : '0.5rem';
+        });
+    }
+
+    // ── Render kartu ─────────────────────────────────────────────
+    function renderCard(card, product) {
+        const imgHtml = product.image
+            ? `<img src="${product.image}" alt="${product.name}"
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>`
+            : `<div class="w-full h-full flex flex-col items-center justify-center bg-surface-container gap-2">
+                   <span class="material-symbols-outlined text-[64px] text-outline">draw</span>
+                   <span class="text-xs text-outline font-label-sm">Tidak Ada Gambar</span>
+               </div>`;
+
+        card.innerHTML = `
+            <div class="relative aspect-[4/5] overflow-hidden bg-surface-container">
+                ${imgHtml}
+                <div class="absolute top-4 left-4">
+                    <span class="bg-primary text-on-primary font-label-sm text-[10px] px-2 py-0.5 rounded uppercase tracking-wider shadow">
+                        ${product.category}
+                    </span>
+                </div>
+            </div>
+            <div class="p-space-lg flex flex-col flex-1 justify-between gap-space-md">
+                <div class="flex flex-col gap-space-xs">
+                    <div class="flex items-center justify-between">
+                        <span class="font-label-sm text-[10px] text-secondary tracking-widest uppercase">${product.category}</span>
+                        <div class="flex items-center gap-1 text-secondary">
+                            <span class="material-symbols-outlined text-[14px]" style="font-variation-settings:'FILL' 1;">star</span>
+                            <span class="font-label-sm text-[10px] font-bold text-on-surface">5.0</span>
+                        </div>
+                    </div>
+                    <h3 class="font-title-lg text-title-lg text-primary font-bold line-clamp-1">${product.name}</h3>
+                    <p class="text-xs text-on-surface-variant line-clamp-2 leading-relaxed">${product.desc}</p>
+                </div>
+                <div class="flex flex-col gap-space-sm pt-space-xs">
+                    <div class="flex items-baseline justify-between">
+                        <span class="text-[10px] text-outline uppercase tracking-wider">Investasi Mahakarya</span>
+                        <span class="font-headline-sm text-headline-sm text-primary font-bold">Rp ${product.price}</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-space-xs">
+                        <a href="${product.url}"
+                           class="inline-flex items-center justify-center py-space-sm px-space-sm bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md rounded transition-colors text-center text-xs">
+                            Detail Produk
+                        </a>
+                        <a href="${product.wa}" target="_blank" rel="noopener"
+                           class="inline-flex items-center justify-center gap-1 py-space-sm px-space-sm bg-primary hover:bg-secondary text-on-primary font-label-md text-label-md rounded transition-colors shadow text-xs">
+                            <span class="material-symbols-outlined text-[14px]">shopping_bag</span>
+                            <span>Beli</span>
+                        </a>
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    // ── Tampilkan set produk mulai index tertentu (dengan fade) ───
+    function showSlide(startIndex, direction = 1) {
+        // fade out
+        cards.forEach(c => {
+            c.style.opacity    = '0';
+            c.style.transform  = `translateX(${direction * 20}px)`;
+        });
+
+        setTimeout(() => {
+            for (let i = 0; i < SLOTS; i++) {
+                const idx  = (startIndex + i) % products.length;
+                renderCard(cards[i], products[idx]);
+                cards[i].style.transform = `translateX(${-direction * 20}px)`;
+            }
+            // trigger reflow lalu fade in
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    cards.forEach((c, i) => {
+                        setTimeout(() => {
+                            c.style.opacity   = '1';
+                            c.style.transform = 'translateX(0)';
+                        }, i * 60);
+                    });
+                });
+            });
+        }, ANIM);
+
+        currentStart = startIndex;
+        updateDots();
+        startProgress();
+    }
+
+    function goTo(index) {
+        const dir = index > currentStart ? 1 : -1;
+        resetTimer();
+        showSlide(index, dir);
+    }
+
+    // ── Progress bar ─────────────────────────────────────────────
+    function startProgress() {
+        if (!progressEl) return;
+        clearInterval(progressTimer);
+        progressEl.style.transition = 'none';
+        progressEl.style.width      = '0%';
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                progressEl.style.transition = `width ${INTERVAL}ms linear`;
+                progressEl.style.width      = '100%';
+            });
+        });
+    }
+
+    // ── Auto-play ────────────────────────────────────────────────
+    function startTimer() {
+        timer = setInterval(() => {
+            const next = (currentStart + SLOTS) % products.length;
+            showSlide(next, 1);
+        }, INTERVAL);
+    }
+
+    function resetTimer() {
+        clearInterval(timer);
+        startTimer();
+    }
+
+    // ── Kontrol tombol prev/next ──────────────────────────────────
+    // (tombol dihapus — slideshow berjalan otomatis)
+
+    // ── Pause saat hover ─────────────────────────────────────────
+    slider.addEventListener('mouseenter', () => clearInterval(timer));
+    slider.addEventListener('mouseleave', () => startTimer());
+
+    // ── Init ─────────────────────────────────────────────────────
+    buildDots();
+    showSlide(0, 1);
+    startTimer();
+})();
 </script>
 @endpush

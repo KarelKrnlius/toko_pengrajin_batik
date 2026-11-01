@@ -9,13 +9,25 @@ use Illuminate\Http\Request;
 class PageController extends Controller
 {
     /**
-     * Beranda: tampilkan 3 produk terbaru.
+     * Beranda: 3 slot kartu yang auto-rotate dari semua produk.
      */
     public function home()
     {
-        $latestProducts = Product::with('category')->latest()->take(3)->get();
+        $allProducts = Product::with('category')->latest()->get()
+            ->map(function ($p) {
+                return [
+                    'id'       => $p->id,
+                    'name'     => $p->name,
+                    'category' => $p->category->name ?? 'Batik',
+                    'price'    => number_format($p->price, 0, ',', '.'),
+                    'desc'     => \Illuminate\Support\Str::limit($p->description, 90),
+                    'image'    => $p->image ? \Illuminate\Support\Facades\Storage::url($p->image) : null,
+                    'url'      => route('product.show', $p->id),
+                    'wa'       => 'https://wa.me/6281234567890?text=' . urlencode('Halo, saya ingin memesan: ' . $p->name),
+                ];
+            });
 
-        return view('home', compact('latestProducts'));
+        return view('home', compact('allProducts'));
     }
 
     /**

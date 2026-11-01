@@ -241,31 +241,40 @@
                 <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
             </a>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-{{ min($related->count(), 3) }} gap-space-lg">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-space-lg">
             @foreach($related as $rel)
             <article class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all group flex flex-col">
-                <div class="relative aspect-[4/5] bg-surface-container overflow-hidden">
+                {{-- Gambar — tinggi fixed agar konsisten --}}
+                <div class="relative w-full overflow-hidden bg-surface-container" style="height: 220px;">
                     @if($rel->image)
                         <img src="{{ Storage::url($rel->image) }}"
                              alt="{{ $rel->name }}"
                              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
                     @else
-                        <div class="w-full h-full flex items-center justify-center bg-surface-container">
-                            <span class="material-symbols-outlined text-[60px] text-outline">draw</span>
+                        <div class="w-full h-full flex flex-col items-center justify-center bg-surface-container gap-2">
+                            <span class="material-symbols-outlined text-[48px] text-outline">draw</span>
+                            <span class="text-xs text-outline font-label-sm">Tidak Ada Gambar</span>
                         </div>
                     @endif
-                    <span class="absolute top-space-sm left-space-sm bg-surface/90 text-primary font-label-sm text-label-sm px-space-sm py-0.5 rounded-full font-bold">{{ $rel->category->name ?? 'Batik' }}</span>
+                    <span class="absolute top-2 left-2 bg-primary text-on-primary font-label-sm text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm">
+                        {{ $rel->category->name ?? 'Batik' }}
+                    </span>
                 </div>
+                {{-- Info --}}
                 <div class="p-space-md flex flex-col flex-1 justify-between gap-space-sm">
                     <div class="flex flex-col gap-1">
-                        <h3 class="font-title-lg text-title-lg text-primary group-hover:text-secondary transition-colors">{{ $rel->name }}</h3>
-                        <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">{{ Str::limit($rel->description, 80) }}</p>
+                        <h3 class="font-title-lg text-title-lg text-primary group-hover:text-secondary transition-colors line-clamp-1">{{ $rel->name }}</h3>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">{{ Str::limit($rel->description, 70) }}</p>
                     </div>
-                    <div class="flex items-center justify-between pt-space-xs">
-                        <span class="font-label-lg text-label-lg text-primary font-bold">Rp {{ number_format($rel->price, 0, ',', '.') }}</span>
+                    <div class="flex items-center justify-between pt-space-xs border-t border-surface-container mt-space-xs">
+                        <span class="font-label-lg text-label-lg text-primary font-bold">
+                            Rp {{ number_format($rel->price, 0, ',', '.') }}
+                        </span>
                         <a href="{{ route('product.show', $rel->id) }}"
-                           class="w-9 h-9 rounded-full bg-surface-container hover:bg-primary hover:text-on-primary text-primary flex items-center justify-center transition-colors">
-                            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                           class="inline-flex items-center gap-1 text-xs font-bold text-secondary hover:text-primary transition-colors">
+                            Detail
+                            <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
                         </a>
                     </div>
                 </div>
