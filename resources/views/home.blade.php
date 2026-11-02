@@ -71,15 +71,7 @@
                         </div>
                     </div>
                 </div>
-                {{-- Provenance Card --}}
-                <div class="hidden sm:flex absolute -bottom-8 -left-10 bg-surface-container-lowest/95 backdrop-blur-md p-space-md rounded-lg shadow-lg flex-col gap-1 max-w-[240px]">
-                    <div class="flex items-center justify-between">
-                        <span class="font-label-sm text-label-sm text-secondary font-bold uppercase tracking-wider">Provenance</span>
-                        <span class="material-symbols-outlined text-[16px] text-secondary">history_edu</span>
-                    </div>
-                    <p class="font-body-sm text-body-sm text-on-surface font-semibold">Canting Solo No. 042</p>
-                    <p class="font-body-sm text-body-sm text-on-surface-variant text-[12px] leading-tight">Ditenun &amp; dicanting tangan selama 48 hari oleh maestro generasi ke-3.</p>
-                </div>
+                {{-- Provenance Card dihapus --}}
             </div>
 
         </div>
@@ -188,7 +180,7 @@
                    class="px-space-lg py-space-md bg-surface-container-lowest hover:bg-surface text-primary font-label-lg text-label-lg rounded shadow transition-colors">
                     Buka Katalog Lengkap
                 </a>
-                <a href="https://wa.me/6281234567890?text={{ urlencode('Halo Juragan Batik, saya ingin konsultasi mengenai motif batik.') }}"
+                <a href="https://wa.me/6281382958012?text={{ urlencode('Halo Juragan Batik, saya ingin konsultasi mengenai motif batik.') }}"
                    target="_blank" rel="noopener"
                    class="inline-flex items-center gap-space-xs px-space-lg py-space-md text-on-primary font-label-lg text-label-lg rounded transition-colors shadow-md hover:opacity-90"
                    style="background:#25d366;">

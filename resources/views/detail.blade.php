@@ -128,7 +128,7 @@
                     {{-- CTA Buttons --}}
                     <div class="flex flex-col gap-space-sm pt-space-xs">
                         @if($product->stock > 0)
-                        <a href="https://wa.me/6281234567890?text={{ urlencode('Halo, saya ingin memesan: ' . $product->name . ' (Rp ' . number_format($product->price, 0, ',', '.') . ')') }}"
+                        <a href="https://wa.me/6281382958012?text={{ urlencode('Halo, saya ingin memesan: ' . $product->name . ' (Rp ' . number_format($product->price, 0, ',', '.') . ')') }}"
                            target="_blank" rel="noopener"
                            class="w-full py-space-md px-space-lg bg-primary hover:bg-secondary text-on-primary font-label-lg text-label-lg rounded tracking-widest uppercase transition-all shadow-md flex items-center justify-center gap-space-sm group">
                             <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">shopping_bag</span>

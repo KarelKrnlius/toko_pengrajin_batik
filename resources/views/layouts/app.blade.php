@@ -232,11 +232,6 @@
 
     {{-- Mobile Nav --}}
     <div id="mobileNav" class="hidden lg:hidden bg-surface border-t border-surface-container px-margin-mobile py-space-md flex flex-col gap-space-sm">
-        {{-- Logo mobile --}}
-        <div class="flex items-center gap-2 pb-space-sm border-b border-surface-container mb-space-xs">
-            <img src="{{ asset('images/logo.png') }}" alt="Juragan Batik" class="h-8 w-auto object-contain"/>
-            <span class="font-label-lg text-label-lg text-primary font-bold tracking-widest uppercase">Juragan Batik</span>
-        </div>
         <a href="{{ route('home') }}" class="font-label-lg text-label-lg {{ request()->routeIs('home') ? 'text-primary font-bold' : 'text-on-surface-variant' }} py-space-xs">Beranda</a>
         <a href="{{ route('catalog') }}" class="font-label-lg text-label-lg {{ request()->routeIs('catalog') ? 'text-primary font-bold' : 'text-on-surface-variant' }} py-space-xs">Katalog Batik</a>
         <a href="{{ route('about') }}" class="font-label-lg text-label-lg {{ request()->routeIs('about') ? 'text-primary font-bold' : 'text-on-surface-variant' }} py-space-xs">Filosofi Motif</a>

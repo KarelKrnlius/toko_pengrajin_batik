@@ -23,7 +23,7 @@ class PageController extends Controller
                     'desc'     => \Illuminate\Support\Str::limit($p->description, 90),
                     'image'    => $p->image ? \Illuminate\Support\Facades\Storage::url($p->image) : null,
                     'url'      => route('product.show', $p->id),
-                    'wa'       => 'https://wa.me/6281234567890?text=' . urlencode('Halo, saya ingin memesan: ' . $p->name),
+                    'wa'       => 'https://wa.me/6281382958012?text=' . urlencode('Halo, saya ingin memesan: ' . $p->name),
                 ];
             });
 
@@ -39,15 +39,35 @@ class PageController extends Controller
 
         $query = Product::with('category');
 
+        // Search nama produk
         if ($request->filled('search')) {
             $query->where('name', 'ilike', '%' . $request->search . '%');
         }
 
+        // Filter kategori
         if ($request->filled('category')) {
             $query->where('category_id', $request->category);
         }
 
-        $products = $query->latest()->paginate(6)->withQueryString();
+        // Filter harga min & max
+        if ($request->filled('price_min') && (int)$request->price_min > 0) {
+            $query->where('price', '>=', (int) $request->price_min);
+        }
+        if ($request->filled('price_max') && (int)$request->price_max < 10000000) {
+            $query->where('price', '<=', (int) $request->price_max);
+        }
+
+        // Sort
+        $sort = $request->get('sort', 'terbaru');
+        $query = match ($sort) {
+            'nama_az'    => $query->orderBy('name'),
+            'nama_za'    => $query->orderByDesc('name'),
+            'harga_naik' => $query->orderBy('price'),
+            'harga_turun'=> $query->orderByDesc('price'),
+            default      => $query->latest(),
+        };
+
+        $products = $query->paginate(6)->withQueryString();
 
         return view('catalog', compact('products', 'categories'));
     }
