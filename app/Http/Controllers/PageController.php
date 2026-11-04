@@ -27,7 +27,13 @@ class PageController extends Controller
                 ];
             });
 
-        return view('home', compact('allProducts'));
+        // Gambar hero — ambil produk pertama yang punya gambar
+        $heroProduct = Product::with('category')
+            ->whereNotNull('image')
+            ->latest()
+            ->first();
+
+        return view('home', compact('allProducts', 'heroProduct'));
     }
 
     /**

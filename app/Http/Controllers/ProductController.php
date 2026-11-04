@@ -72,10 +72,13 @@ class ProductController extends Controller
             'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        if ($request->hasFile('image')) {
+        if ($request->input('crop_active') === '1' && $request->filled('crop_image')) {
+            $validated['image'] = $this->saveCropImage($request->input('crop_image'), 'products');
+        } elseif ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('products', 'public');
         }
 
+        unset($validated['crop_image'], $validated['crop_active']);
         Product::create($validated);
 
         return redirect()->route('admin.products.index')
@@ -98,18 +101,30 @@ class ProductController extends Controller
             'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        if ($request->hasFile('image')) {
-            // Hapus gambar lama
-            if ($product->image) {
-                Storage::disk('public')->delete($product->image);
-            }
+        if ($request->input('crop_active') === '1' && $request->filled('crop_image')) {
+            if ($product->image) Storage::disk('public')->delete($product->image);
+            $validated['image'] = $this->saveCropImage($request->input('crop_image'), 'products');
+        } elseif ($request->hasFile('image')) {
+            if ($product->image) Storage::disk('public')->delete($product->image);
             $validated['image'] = $request->file('image')->store('products', 'public');
         }
 
+        unset($validated['crop_image'], $validated['crop_active']);
         $product->update($validated);
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Produk berhasil diperbarui.');
+    }
+
+    /** Simpan base64 crop ke storage dan return path */
+    private function saveCropImage(string $base64, string $folder): string
+    {
+        // Format: data:image/jpeg;base64,....
+        [$meta, $data] = explode(',', $base64, 2);
+        $ext  = str_contains($meta, 'png') ? 'png' : 'jpg';
+        $name = $folder . '/' . \Illuminate\Support\Str::uuid() . '.' . $ext;
+        Storage::disk('public')->put($name, base64_decode($data));
+        return $name;
     }
 
     /**

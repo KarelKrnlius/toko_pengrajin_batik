@@ -59,15 +59,27 @@
             {{-- Hero Visual --}}
             <div class="lg:col-span-5 relative">
                 <div class="relative bg-surface-container-lowest p-space-sm rounded-xl shadow-xl">
-                    <div class="relative w-full aspect-[4/5] rounded overflow-hidden">
-                        <img alt="Kemeja Sutra Parang Rusak Slimfit Eksklusif"
-                             class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700"
-                             src="https://lh3.googleusercontent.com/aida/AEtjO1WPwAu_Hm1Zf7gFa0A6MOxZXP72k_NVYhedaUhvJDeHUMDO9iQz7WGyVu3zhbE-57YYHBSy9jcFnURhOboiurcqDQePTOQXEGPNcCOvi43B6EZO0UxAl3bECWUxY2OHXZDBHf5G2znPiVdcxMWpRo1J5fXnMV0a8NS2BgOLAuiSoVJ2NsBBx_AfzqI2zk-SY_PUXrauRJviOI5Xd9S30xi25YuvzTZhAlwQszlZpiU"/>
+                    <div class="relative w-full aspect-[3/4] rounded overflow-hidden">
+                        @if($heroProduct && $heroProduct->image)
+                            <img alt="{{ $heroProduct->name }}"
+                                 class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700"
+                                 src="{{ Storage::url($heroProduct->image) }}"/>
+                        @else
+                            <div class="w-full h-full flex flex-col items-center justify-center bg-surface-container gap-4">
+                                <img src="{{ asset('images/logo.png') }}" alt="Juragan Batik"
+                                     class="h-24 w-auto object-contain opacity-30" style="mix-blend-mode:multiply;"/>
+                                <span class="text-sm text-outline font-bold tracking-widest uppercase">Juragan Batik</span>
+                            </div>
+                        @endif
                         <div class="absolute inset-0 bg-gradient-to-t from-primary/70 via-transparent to-transparent"></div>
                         <div class="absolute bottom-6 left-6 right-6 text-on-primary">
                             <span class="font-label-sm text-label-sm uppercase tracking-[0.2em] bg-secondary/80 backdrop-blur-sm px-space-sm py-0.5 rounded text-on-secondary">Koleksi Kasunanan</span>
-                            <p class="font-title-lg text-title-lg font-bold mt-1 text-on-primary">Mahakarya Parang Rusak Barong</p>
-                            <p class="font-body-sm text-body-sm text-surface-container-highest">Motif agung kewibawaan dan keteguhan jiwa para ksatria</p>
+                            <p class="font-title-lg text-title-lg font-bold mt-1 text-on-primary">
+                                {{ $heroProduct ? $heroProduct->name : 'Mahakarya Wastra Nusantara' }}
+                            </p>
+                            <p class="font-body-sm text-body-sm text-surface-container-highest">
+                                {{ $heroProduct ? ($heroProduct->category->name ?? 'Batik') . ' Asli' : 'Motif agung kewibawaan dan keteguhan jiwa para ksatria' }}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -85,7 +97,7 @@
         <div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md mb-space-xl">
             <div class="flex flex-col gap-space-xs">
                 <span class="font-label-md text-label-md text-secondary tracking-[0.2em] uppercase font-bold">Kurasi Unggulan Musim Ini</span>
-                <h2 class="font-headline-lg text-headline-lg text-primary">Tiga Mahakarya Wastra Pilihan</h2>
+                <h2 class="font-headline-lg text-headline-lg text-primary">Mahakarya Wastra Pilihan</h2>
                 <p class="font-body-md text-body-md text-on-surface-variant max-w-xl">
                     Setiap helai kain membawa filosofi sakral yang diwariskan dari bilik-bilik keraton.
                 </p>
@@ -104,10 +116,10 @@
         </div>
         @else
 
-        {{-- Grid 3 kartu --}}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg" id="productSlider">
-            {{-- 3 slot kartu -- diisi JS --}}
-            @for($i = 0; $i < 3; $i++)
+        {{-- Grid 4 kartu --}}
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-space-md" id="productSlider">
+            {{-- 4 slot kartu -- diisi JS --}}
+            @for($i = 0; $i < 4; $i++)
             <div class="product-card bg-surface-container-lowest rounded-lg shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col group overflow-hidden opacity-0"
                  style="transition: opacity 0.4s ease, transform 0.4s ease;">
             </div>
@@ -204,7 +216,7 @@
 
     if (!products.length) return;
 
-    const SLOTS      = 3;          // jumlah kartu tampil
+    const SLOTS      = 4;          // jumlah kartu tampil
     const INTERVAL   = 4000;       // ms antar rotate
     const ANIM       = 400;        // ms durasi fade
 
@@ -253,39 +265,33 @@
                </div>`;
 
         card.innerHTML = `
-            <div class="relative aspect-[4/5] overflow-hidden bg-surface-container">
+            <div class="relative aspect-[3/4] overflow-hidden bg-surface-container">
                 ${imgHtml}
-                <div class="absolute top-4 left-4">
-                    <span class="bg-primary text-on-primary font-label-sm text-[10px] px-2 py-0.5 rounded uppercase tracking-wider shadow">
+                <div class="absolute top-3 left-3">
+                    <span class="bg-primary text-on-primary text-[9px] px-2 py-0.5 rounded uppercase tracking-wider shadow font-bold">
                         ${product.category}
                     </span>
                 </div>
             </div>
-            <div class="p-space-lg flex flex-col flex-1 justify-between gap-space-md">
-                <div class="flex flex-col gap-space-xs">
-                    <div class="flex items-center justify-between">
-                        <span class="font-label-sm text-[10px] text-secondary tracking-widest uppercase">${product.category}</span>
-                        <div class="flex items-center gap-1 text-secondary">
-                            <span class="material-symbols-outlined text-[14px]" style="font-variation-settings:'FILL' 1;">star</span>
-                            <span class="font-label-sm text-[10px] font-bold text-on-surface">5.0</span>
-                        </div>
-                    </div>
-                    <h3 class="font-title-lg text-title-lg text-primary font-bold line-clamp-1">${product.name}</h3>
-                    <p class="text-xs text-on-surface-variant line-clamp-2 leading-relaxed">${product.desc}</p>
+            <div class="p-3 flex flex-col flex-1 justify-between gap-1">
+                <div class="flex flex-col gap-1">
+                    <span class="text-[9px] text-secondary tracking-widest uppercase font-bold">${product.category}</span>
+                    <h3 class="text-sm font-bold text-primary line-clamp-1 leading-tight">${product.name}</h3>
+                    <p class="text-[11px] text-on-surface-variant line-clamp-2 leading-snug">${product.desc}</p>
                 </div>
-                <div class="flex flex-col gap-space-sm pt-space-xs">
-                    <div class="flex items-baseline justify-between">
-                        <span class="text-[10px] text-outline uppercase tracking-wider">Investasi Mahakarya</span>
-                        <span class="font-headline-sm text-headline-sm text-primary font-bold">Rp ${product.price}</span>
+                <div class="pt-2 border-t border-surface-container mt-1">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[9px] text-outline uppercase tracking-wider">Harga</span>
+                        <span class="text-sm font-bold text-primary whitespace-nowrap">Rp ${product.price}</span>
                     </div>
-                    <div class="grid grid-cols-2 gap-space-xs">
+                    <div class="grid grid-cols-2 gap-1">
                         <a href="${product.url}"
-                           class="inline-flex items-center justify-center py-space-sm px-space-sm bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md rounded transition-colors text-center text-xs">
-                            Detail Produk
+                           class="py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary text-center text-[11px] font-semibold transition-colors">
+                            Detail
                         </a>
                         <a href="${product.wa}" target="_blank" rel="noopener"
-                           class="inline-flex items-center justify-center gap-1 py-space-sm px-space-sm bg-primary hover:bg-secondary text-on-primary font-label-md text-label-md rounded transition-colors shadow text-xs">
-                            <span class="material-symbols-outlined text-[14px]">shopping_bag</span>
+                           class="py-1.5 rounded-lg bg-primary hover:bg-secondary text-on-primary shadow-sm transition-colors flex items-center justify-center gap-1 text-[11px] font-semibold">
+                            <span class="material-symbols-outlined text-[13px]">shopping_bag</span>
                             <span>Beli</span>
                         </a>
                     </div>

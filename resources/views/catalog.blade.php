@@ -25,11 +25,11 @@
         border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2);
     }
 
-    /* Gambar kartu — pakai aspect ratio, tidak kepotong */
+    /* Gambar kartu — rasio 3:4 terjaga, tidak dipotong */
     .card-img-wrap {
         position: relative;
         width: 100%;
-        aspect-ratio: 4 / 5;
+        aspect-ratio: 3 / 4;    /* tinggi mengikuti lebar secara otomatis */
         overflow: hidden;
         background: #f1ede7;
         flex-shrink: 0;
@@ -37,12 +37,10 @@
     .card-img-wrap img {
         width: 100%;
         height: 100%;
-        object-fit: contain;   /* tampilkan gambar penuh, tidak dipotong */
+        object-fit: cover;       /* cover penuh — karena gambar sudah 4:5 dari cropper */
         object-position: center;
         display: block;
-        padding: 8px;           /* sedikit padding agar tidak mepet */
         transition: transform 0.5s ease;
-        background: #f1ede7;
     }
     .group:hover .card-img-wrap img {
         transform: scale(1.03);
@@ -287,7 +285,7 @@
             </div>
             @else
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-lg">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-space-md">
                 @foreach($products as $product)
                 <article class="group flex flex-col bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
 
@@ -314,36 +312,44 @@
                     </div>
 
                     {{-- Konten --}}
-                    <div class="p-space-md flex flex-col flex-1 justify-between gap-space-sm">
+                    <div class="p-3 flex flex-col flex-1 justify-between gap-1">
                         <div>
-                            <span class="font-label-sm text-[10px] text-secondary uppercase tracking-widest font-semibold block mb-0.5">
+                            <span class="text-[9px] text-secondary uppercase tracking-widest font-bold block mb-0.5">
                                 {{ $product->category->name ?? '-' }}
                             </span>
-                            <h3 class="font-title-lg text-title-lg text-primary group-hover:text-secondary transition-colors line-clamp-1">
+                            <h3 class="text-sm font-bold text-primary group-hover:text-secondary transition-colors line-clamp-1 leading-tight">
                                 {{ $product->name }}
                             </h3>
-                            <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-1">
-                                {{ Str::limit($product->description, 90) }}
+                            <p class="text-[11px] text-on-surface-variant line-clamp-2 mt-1 leading-snug">
+                                {{ Str::limit($product->description, 70) }}
                             </p>
                         </div>
-                        <div class="pt-space-sm border-t border-surface-container">
-                            <div class="flex items-baseline justify-between mb-space-sm">
-                                <span class="font-label-sm text-[10px] text-outline uppercase">Mahar Wastra</span>
-                                <span class="font-headline-sm text-headline-sm text-primary font-bold">
+                        <div class="pt-2 border-t border-surface-container mt-1">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[9px] text-outline uppercase tracking-wider">Harga</span>
+                                <span class="text-sm font-bold text-primary whitespace-nowrap">
                                     Rp {{ number_format($product->price, 0, ',', '.') }}
                                 </span>
                             </div>
-                            <div class="grid grid-cols-2 gap-space-xs">
+                            <div class="grid grid-cols-2 gap-1">
                                 <a href="{{ route('product.show', $product->id) }}"
-                                   class="py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary font-label-md text-label-md transition-colors text-center text-xs">
+                                   class="py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary text-center text-[11px] font-semibold transition-colors">
                                     Detail
                                 </a>
-                                <a href="https://wa.me/6281382958012?text={{ urlencode('Halo, saya ingin memesan: ' . $product->name) }}"
-                                   target="_blank" rel="noopener"
-                                   class="py-2 rounded-lg bg-primary hover:bg-secondary text-on-primary font-label-md text-label-md shadow-sm transition-colors flex items-center justify-center gap-1 text-xs">
-                                    <span class="material-symbols-outlined text-[14px]">shopping_bag</span>
-                                    <span>Beli</span>
-                                </a>
+                                @auth
+                                    <a href="https://wa.me/6281382958012?text={{ urlencode('Halo, saya ingin memesan: ' . $product->name) }}"
+                                       target="_blank" rel="noopener"
+                                       class="py-1.5 rounded-lg bg-primary hover:bg-secondary text-on-primary shadow-sm transition-colors flex items-center justify-center gap-1 text-[11px] font-semibold">
+                                        <span class="material-symbols-outlined text-[13px]">shopping_bag</span>
+                                        <span>Beli</span>
+                                    </a>
+                                @else
+                                    <a href="{{ route('login') }}"
+                                       class="py-1.5 rounded-lg bg-primary text-on-primary shadow-sm transition-colors flex items-center justify-center gap-1 text-[11px] font-semibold">
+                                        <span class="material-symbols-outlined text-[13px]">login</span>
+                                        <span>Beli</span>
+                                    </a>
+                                @endauth
                             </div>
                         </div>
                     </div>

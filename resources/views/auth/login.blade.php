@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Login Kurator — Juragan Batik</title>
+    <title>Masuk — Juragan Batik</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -89,8 +89,8 @@
                         <span class="material-symbols-outlined text-[28px]">shield_person</span>
                     </div>
                     <div>
-                        <h1 class="font-serif text-xl font-bold leading-tight">Portal Kurator</h1>
-                        <p class="text-on-primary/70 text-sm mt-0.5">Masuk untuk mengelola inventaris wastra</p>
+                        <h1 class="font-serif text-xl font-bold leading-tight">Login</h1>
+                        <p class="text-on-primary/70 text-sm mt-0.5">Masuk untuk berbelanja & menyimpan favorit</p>
                     </div>
                 </div>
             </div>
@@ -120,7 +120,7 @@
                     {{-- Email --}}
                     <div class="flex flex-col gap-space-xs">
                         <label class="text-[12px] font-bold tracking-[0.1em] uppercase text-primary">
-                            Email Administrator
+                            Email
                         </label>
                         <div class="relative">
                             <span class="material-symbols-outlined absolute left-space-md top-1/2 -translate-y-1/2 text-outline text-[20px]">mail</span>
@@ -166,20 +166,29 @@
                     <button type="submit"
                             class="w-full py-3 bg-primary hover:bg-secondary text-on-primary font-bold text-sm tracking-[0.1em] uppercase rounded-xl shadow-md transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-space-sm">
                         <span class="material-symbols-outlined text-[20px]">login</span>
-                        <span>Masuk ke Panel Kurator</span>
+                        <span>Masuk</span>
                     </button>
                 </form>
             </div>
 
             {{-- Card Footer --}}
             <div class="px-space-xl pb-space-lg pt-0 text-center">
-                <div class="border-t border-outline-variant pt-space-lg">
-                    <p class="text-xs text-on-surface-variant mb-space-sm">Bukan administrator?</p>
-                    <a href="{{ route('home') }}"
-                       class="inline-flex items-center gap-1 text-secondary hover:text-primary text-sm font-semibold transition-colors">
-                        <span class="material-symbols-outlined text-[16px]">arrow_back</span>
-                        Kembali ke Beranda
-                    </a>
+                <div class="border-t border-outline-variant pt-space-lg flex flex-col items-center gap-3">
+                    <div>
+                        <p class="text-xs text-on-surface-variant mb-1">Belum punya akun?</p>
+                        <a href="{{ route('register') }}"
+                           class="inline-flex items-center gap-1 text-secondary hover:text-primary text-sm font-semibold transition-colors">
+                            <span class="material-symbols-outlined text-[16px]">person_add</span>
+                            Daftar Sekarang
+                        </a>
+                    </div>
+                    <div class="border-t border-outline-variant w-full pt-2">
+                        <a href="{{ route('home') }}"
+                           class="inline-flex items-center gap-1 text-on-surface-variant hover:text-primary text-sm font-semibold transition-colors">
+                            <span class="material-symbols-outlined text-[16px]">home</span>
+                            Kembali ke Beranda
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -189,12 +198,12 @@
             <div class="flex items-start gap-space-sm">
                 <span class="material-symbols-outlined text-secondary text-[18px] flex-shrink-0 mt-0.5">info</span>
                 <div>
-                    <p class="text-xs font-bold text-primary tracking-wider uppercase mb-1">Akun Admin Default</p>
+                    <p class="text-xs font-bold text-primary tracking-wider uppercase mb-1">Akun Admin</p>
                     <p class="text-xs text-on-surface-variant">
                         Email: <span class="font-mono font-semibold text-on-surface">admin@juraganbatik.com</span>
                     </p>
                     <p class="text-xs text-on-surface-variant">
-                        Password: <span class="font-mono font-semibold text-on-surface">password</span>
+                        Kata Sandi: <span class="font-mono font-semibold text-on-surface">password</span>
                     </p>
                 </div>
             </div>

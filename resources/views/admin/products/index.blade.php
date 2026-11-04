@@ -293,19 +293,20 @@
 
                         {{-- Aksi --}}
                         <td class="px-4 py-3 text-center">
-                            <div class="flex items-center justify-center gap-space-xs">
+                            <div class="flex items-center justify-center gap-2">
                                 <button type="button"
-                                        onclick="openEditModal({{ $product->id }}, {{ json_encode($product->name) }}, {{ $product->category_id }}, {{ $product->price }}, {{ $product->stock }}, {{ json_encode($product->description) }})"
-                                        class="w-9 h-9 rounded-full bg-surface-container hover:bg-primary hover:text-on-primary text-primary flex items-center justify-center transition-colors"
+                                        onclick="openEditModal({{ $product->id }}, {{ json_encode($product->name) }}, {{ $product->category_id }}, {{ $product->price }}, {{ $product->stock }}, {{ json_encode($product->description) }}, {{ $product->image ? json_encode(Storage::url($product->image)) : 'null' }})"
+                                        class="w-9 h-9 rounded-lg bg-surface-container hover:bg-primary hover:text-on-primary text-primary flex items-center justify-center transition-colors flex-shrink-0"
                                         title="Edit Produk">
                                     <span class="material-symbols-outlined text-[18px]">edit</span>
                                 </button>
-                                <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" class="inline"
+                                <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST"
+                                      class="m-0 flex items-center"
                                       onsubmit="return confirm('Hapus produk {{ addslashes($product->name) }}?')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit"
-                                            class="w-9 h-9 rounded-full bg-surface-container hover:bg-error hover:text-on-error text-error flex items-center justify-center transition-colors"
+                                            class="w-9 h-9 rounded-lg bg-surface-container hover:bg-error hover:text-on-error text-error flex items-center justify-center transition-colors flex-shrink-0"
                                             title="Hapus Produk">
                                         <span class="material-symbols-outlined text-[18px]">delete</span>
                                     </button>
@@ -459,9 +460,73 @@
                 </div>
                 <div>
                     <label class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider block mb-1">Gambar Produk</label>
-                    <input type="file" name="image" accept="image/*"
-                           class="w-full px-space-md py-space-sm bg-surface-container-low rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none border border-outline-variant"/>
-                    <p class="text-xs text-on-surface-variant mt-1">jpg, png, webp — maks 2MB</p>
+
+                    {{-- Bingkai Cropper Tambah --}}
+                    <div class="w-full mb-2 rounded-lg border-2 border-dashed border-outline-variant bg-surface-container-low overflow-hidden relative"
+                         style="aspect-ratio:3/4; max-height:280px;">
+
+                        {{-- Placeholder --}}
+                        <div id="cropTambahPlaceholder"
+                             class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-outline cursor-pointer select-none"
+                             onclick="document.getElementById('imageTambah').click()">
+                            <span class="material-symbols-outlined text-[44px]">add_photo_alternate</span>
+                            <span class="text-xs font-bold tracking-wider uppercase">Klik untuk pilih foto</span>
+                            <span class="text-[10px] text-outline">Rasio 3:4 • jpg, png, webp • maks 2MB</span>
+                        </div>
+
+                        {{-- Canvas area crop --}}
+                        <div id="cropTambahArea" class="hidden absolute inset-0 overflow-hidden bg-surface-container-low touch-none select-none cursor-grab active:cursor-grabbing">
+                            <img id="cropTambahImage"
+                                 src="" alt=""
+                                 style="position:absolute; transform-origin:top left; will-change:transform;"
+                                 draggable="false"/>
+                            {{-- Overlay grid --}}
+                            <div class="pointer-events-none absolute inset-0" style="
+                                background-image:
+                                    linear-gradient(rgba(255,255,255,.15) 1px, transparent 1px),
+                                    linear-gradient(90deg, rgba(255,255,255,.15) 1px, transparent 1px);
+                                background-size: 33.33% 33.33%;
+                                border: 2px solid rgba(255,255,255,.4);
+                            "></div>
+                        </div>
+
+                        {{-- Toolbar crop --}}
+                        <div id="cropTambahToolbar"
+                             class="hidden absolute bottom-0 left-0 right-0 flex items-center justify-between px-3 py-1.5"
+                             style="background:rgba(49,25,8,.7); backdrop-filter:blur(4px);">
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="cropZoom('tambah',-0.1)"
+                                        class="w-7 h-7 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-colors" title="Zoom Out">
+                                    <span class="material-symbols-outlined text-[16px]">zoom_out</span>
+                                </button>
+                                <button type="button" onclick="cropZoom('tambah',0.1)"
+                                        class="w-7 h-7 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-colors" title="Zoom In">
+                                    <span class="material-symbols-outlined text-[16px]">zoom_in</span>
+                                </button>
+                                <button type="button" onclick="cropReset('tambah')"
+                                        class="w-7 h-7 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-colors" title="Reset">
+                                    <span class="material-symbols-outlined text-[16px]">center_focus_strong</span>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-white/70 text-[10px]">Geser & zoom untuk posisikan foto</span>
+                                <button type="button" onclick="clearCrop('tambah')"
+                                        class="w-7 h-7 rounded-full bg-red-500/70 hover:bg-red-500 text-white flex items-center justify-center transition-colors" title="Ganti Foto">
+                                    <span class="material-symbols-outlined text-[15px]">close</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Input file tersembunyi --}}
+                    <input type="file" id="imageTambah" accept="image/*" class="hidden"
+                           onchange="initCrop(this, 'tambah')"/>
+                    {{-- Hidden input yang menyimpan hasil crop sebagai base64 --}}
+                    <input type="hidden" id="cropDataTambah" name="crop_image"/>
+                    {{-- Input file asli tetap dikirim jika tidak di-crop --}}
+                    <input type="hidden" id="cropActiveTambah" name="crop_active" value="0"/>
+
+                    <p class="text-[10px] text-on-surface-variant mt-1">Pilih foto lalu geser & zoom untuk menyesuaikan area tampil.</p>
                 </div>
                 <div class="md:col-span-2">
                     <label class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider block mb-1">Deskripsi <span class="text-error">*</span></label>
@@ -527,9 +592,65 @@
                 </div>
                 <div>
                     <label class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider block mb-1">Gambar Baru (opsional)</label>
-                    <input type="file" name="image" accept="image/*"
-                           class="w-full px-space-md py-space-sm bg-surface-container-low rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none border border-outline-variant"/>
-                    <p class="text-xs text-on-surface-variant mt-1">Kosongkan jika tidak ingin mengubah gambar.</p>
+
+                    {{-- Bingkai Cropper Edit --}}
+                    <div class="w-full mb-2 rounded-lg border-2 border-dashed border-outline-variant bg-surface-container-low overflow-hidden relative"
+                         style="aspect-ratio:3/4; max-height:280px;">
+
+                        <div id="cropEditPlaceholder"
+                             class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-outline cursor-pointer select-none"
+                             onclick="document.getElementById('imageEdit').click()">
+                            <span class="material-symbols-outlined text-[44px]">photo_camera</span>
+                            <span class="text-xs font-bold tracking-wider uppercase">Klik untuk ganti foto</span>
+                            <span class="text-[10px] text-outline">Kosongkan jika tidak ingin mengubah</span>
+                        </div>
+
+                        <div id="cropEditArea" class="hidden absolute inset-0 overflow-hidden bg-surface-container-low touch-none select-none cursor-grab active:cursor-grabbing">
+                            <img id="cropEditImage" src="" alt=""
+                                 style="position:absolute; transform-origin:top left; will-change:transform;"
+                                 draggable="false"/>
+                            <div class="pointer-events-none absolute inset-0" style="
+                                background-image:
+                                    linear-gradient(rgba(255,255,255,.15) 1px, transparent 1px),
+                                    linear-gradient(90deg, rgba(255,255,255,.15) 1px, transparent 1px);
+                                background-size: 33.33% 33.33%;
+                                border: 2px solid rgba(255,255,255,.4);
+                            "></div>
+                        </div>
+
+                        <div id="cropEditToolbar"
+                             class="hidden absolute bottom-0 left-0 right-0 flex items-center justify-between px-3 py-1.5"
+                             style="background:rgba(49,25,8,.7); backdrop-filter:blur(4px);">
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="cropZoom('edit',-0.1)"
+                                        class="w-7 h-7 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-colors">
+                                    <span class="material-symbols-outlined text-[16px]">zoom_out</span>
+                                </button>
+                                <button type="button" onclick="cropZoom('edit',0.1)"
+                                        class="w-7 h-7 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-colors">
+                                    <span class="material-symbols-outlined text-[16px]">zoom_in</span>
+                                </button>
+                                <button type="button" onclick="cropReset('edit')"
+                                        class="w-7 h-7 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-colors">
+                                    <span class="material-symbols-outlined text-[16px]">center_focus_strong</span>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-white/70 text-[10px]">Geser & zoom untuk posisikan foto</span>
+                                <button type="button" onclick="clearCrop('edit')"
+                                        class="w-7 h-7 rounded-full bg-red-500/70 hover:bg-red-500 text-white flex items-center justify-center transition-colors">
+                                    <span class="material-symbols-outlined text-[15px]">close</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="file" id="imageEdit" accept="image/*" class="hidden"
+                           onchange="initCrop(this, 'edit')"/>
+                    <input type="hidden" id="cropDataEdit" name="crop_image"/>
+                    <input type="hidden" id="cropActiveEdit" name="crop_active" value="0"/>
+
+                    <p class="text-[10px] text-on-surface-variant mt-1">Kosongkan jika tidak ingin mengubah gambar.</p>
                 </div>
                 <div class="md:col-span-2">
                     <label class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider block mb-1">Deskripsi <span class="text-error">*</span></label>
@@ -557,83 +678,299 @@
 
 @push('scripts')
 <script>
-// ── Toast Notification System ────────────────────────────────
+// ════════════════════════════════════════════════════════════
+// CROPPER ENGINE — drag + zoom, output canvas crop ke hidden input
+// ════════════════════════════════════════════════════════════
+const cropState = {};
+
+function initCrop(input, mode) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const imgEl    = document.getElementById('cropImage_' + mode) || document.getElementById('crop' + cap(mode) + 'Image');
+        const areaEl   = document.getElementById('crop' + cap(mode) + 'Area');
+        const holdEl   = document.getElementById('crop' + cap(mode) + 'Placeholder');
+        const toolEl   = document.getElementById('crop' + cap(mode) + 'Toolbar');
+
+        imgEl.onload = function() {
+            const wrapEl = areaEl.parentElement;
+            const boxW   = wrapEl.offsetWidth;
+            const boxH   = wrapEl.offsetHeight;
+            const nat    = { w: imgEl.naturalWidth, h: imgEl.naturalHeight };
+
+            // Hitung scale agar gambar cover penuh bingkai
+            const scale  = Math.max(boxW / nat.w, boxH / nat.h);
+            const iW     = nat.w * scale;
+            const iH     = nat.h * scale;
+            const x      = (boxW - iW) / 2;
+            const y      = (boxH - iH) / 2;
+
+            cropState[mode] = { scale, x, y, iW, iH, boxW, boxH, nat, scale0: scale };
+            applyTransform(mode);
+        };
+        imgEl.src = e.target.result;
+
+        areaEl.classList.remove('hidden');
+        holdEl.classList.add('hidden');
+        toolEl.classList.remove('hidden');
+        toolEl.classList.add('flex');
+
+        // Aktifkan hidden fields
+        document.getElementById('cropActive' + cap(mode)).value = '1';
+
+        // Drag
+        setupDrag(areaEl, mode);
+    };
+    reader.readAsDataURL(file);
+}
+
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+function applyTransform(mode) {
+    const s   = cropState[mode];
+    const img = document.getElementById('crop' + cap(mode) + 'Image');
+    if (!s || !img) return;
+    img.style.width     = s.iW + 'px';
+    img.style.height    = s.iH + 'px';
+    img.style.left      = s.x + 'px';
+    img.style.top       = s.y + 'px';
+    img.style.transform = '';
+}
+
+function cropZoom(mode, delta) {
+    const s = cropState[mode];
+    if (!s) return;
+    const newScale = Math.max(s.scale0, s.scale + delta * s.scale);
+    const ratio    = newScale / s.scale;
+    s.iW   *= ratio;
+    s.iH   *= ratio;
+    // Zoom dari tengah bingkai
+    const cx = s.boxW / 2;
+    const cy = s.boxH / 2;
+    s.x = cx - (cx - s.x) * ratio;
+    s.y = cy - (cy - s.y) * ratio;
+    s.scale = newScale;
+    clampPos(s);
+    applyTransform(mode);
+}
+
+function cropReset(mode) {
+    const s = cropState[mode];
+    if (!s) return;
+    const scale = s.scale0;
+    s.iW    = s.nat.w * scale;
+    s.iH    = s.nat.h * scale;
+    s.x     = (s.boxW - s.iW) / 2;
+    s.y     = (s.boxH - s.iH) / 2;
+    s.scale = scale;
+    clampPos(s);
+    applyTransform(mode);
+}
+
+function clampPos(s) {
+    // Gambar harus selalu cover penuh bingkai — tidak boleh ada space
+    if (s.x > 0) s.x = 0;
+    if (s.y > 0) s.y = 0;
+    if (s.x + s.iW < s.boxW) s.x = s.boxW - s.iW;
+    if (s.y + s.iH < s.boxH) s.y = s.boxH - s.iH;
+}
+
+function clearCrop(mode) {
+    document.getElementById('image' + cap(mode)).value = '';
+    document.getElementById('crop' + cap(mode) + 'Area').classList.add('hidden');
+    document.getElementById('crop' + cap(mode) + 'Toolbar').classList.remove('flex');
+    document.getElementById('crop' + cap(mode) + 'Toolbar').classList.add('hidden');
+    document.getElementById('crop' + cap(mode) + 'Placeholder').classList.remove('hidden');
+    document.getElementById('cropData' + cap(mode)).value = '';
+    document.getElementById('cropActive' + cap(mode)).value = '0';
+    delete cropState[mode];
+}
+
+function setupDrag(areaEl, mode) {
+    let dragging = false, startX, startY, startOX, startOY;
+
+    // Touch
+    areaEl.addEventListener('touchstart', e => {
+        dragging = true;
+        startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+        startOX = cropState[mode].x; startOY = cropState[mode].y;
+        e.preventDefault();
+    }, { passive: false });
+    areaEl.addEventListener('touchmove', e => {
+        if (!dragging) return;
+        const dx = e.touches[0].clientX - startX;
+        const dy = e.touches[0].clientY - startY;
+        cropState[mode].x = startOX + dx;
+        cropState[mode].y = startOY + dy;
+        clampPos(cropState[mode]);
+        applyTransform(mode);
+        e.preventDefault();
+    }, { passive: false });
+    areaEl.addEventListener('touchend', () => { dragging = false; });
+
+    // Mouse
+    areaEl.addEventListener('mousedown', e => {
+        dragging = true;
+        startX = e.clientX; startY = e.clientY;
+        startOX = cropState[mode].x; startOY = cropState[mode].y;
+    });
+    document.addEventListener('mousemove', e => {
+        if (!dragging) return;
+        cropState[mode].x = startOX + (e.clientX - startX);
+        cropState[mode].y = startOY + (e.clientY - startY);
+        clampPos(cropState[mode]);
+        applyTransform(mode);
+    });
+    document.addEventListener('mouseup', () => { dragging = false; });
+
+    // Pinch zoom
+    let lastDist = 0;
+    areaEl.addEventListener('touchstart', e => {
+        if (e.touches.length === 2) {
+            lastDist = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+        }
+    }, { passive: false });
+    areaEl.addEventListener('touchmove', e => {
+        if (e.touches.length === 2) {
+            const dist = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+            const delta = (dist - lastDist) / 200;
+            cropZoom(mode, delta);
+            lastDist = dist;
+        }
+    }, { passive: false });
+}
+
+// Render crop ke canvas sebelum submit
+function renderCropToCanvas(mode) {
+    const s   = cropState[mode];
+    const img = document.getElementById('crop' + cap(mode) + 'Image');
+    if (!s || !img || !img.src) return;
+
+    const canvas  = document.createElement('canvas');
+    const outW    = 800;   // lebar output crop (px)
+    const outH    = Math.round(outW * (4/3)); // rasio 3:4
+    canvas.width  = outW;
+    canvas.height = outH;
+    const ctx     = canvas.getContext('2d');
+
+    // Hitung src rect (area yang terlihat di bingkai)
+    const ratio   = s.nat.w / s.iW;
+    const srcX    = (-s.x) * ratio;
+    const srcY    = (-s.y) * ratio;
+    const srcW    = s.boxW * ratio;
+    const srcH    = s.boxH * ratio;
+
+    ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, outW, outH);
+
+    document.getElementById('cropData' + cap(mode)).value = canvas.toDataURL('image/jpeg', 0.92);
+}
+
+// ── Toast ────────────────────────────────────────────────────
 function showToast(message, type = 'success') {
     const container = document.getElementById('toast-container');
-
-    const icons = {
-        success: { symbol: 'check_circle', color: '#386a20' },
-        error:   { symbol: 'error',        color: '#ba1a1a' },
-    };
-    const labels = { success: 'Berhasil', error: 'Gagal' };
-
+    const icons = { success:{ sym:'check_circle', color:'#386a20' }, error:{ sym:'error', color:'#ba1a1a' } };
+    const labels = { success:'Berhasil', error:'Gagal' };
     const toast = document.createElement('div');
     toast.className = `toast toast-${type} relative overflow-hidden`;
     toast.innerHTML = `
         <div class="toast-icon">
-            <span class="material-symbols-outlined text-[20px]" style="color:${icons[type].color};font-variation-settings:'FILL' 1;">${icons[type].symbol}</span>
+            <span class="material-symbols-outlined text-[20px]" style="color:${icons[type].color};font-variation-settings:'FILL' 1;">${icons[type].sym}</span>
         </div>
         <div class="flex-1 min-w-0">
-            <p class="text-[11px] font-bold uppercase tracking-widest" style="color:${icons[type].color};">${labels[type]}</p>
-            <p class="text-sm text-on-surface font-medium leading-tight mt-0.5">${message}</p>
+            <p class="font-label-sm text-[10px] font-bold uppercase" style="color:${icons[type].color};">${labels[type]}</p>
+            <p class="font-body-sm text-body-sm font-medium leading-tight mt-0.5" style="color:#1c1c18;">${message}</p>
         </div>
         <button onclick="dismissToast(this.closest('.toast'))"
-                class="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center hover:bg-surface-container transition-colors text-on-surface-variant">
+                class="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center hover:bg-surface-container transition-colors text-on-surface-variant" style="background:none;border:none;cursor:pointer;">
             <span class="material-symbols-outlined text-[16px]">close</span>
         </button>
-        <div class="toast-progress"></div>
-    `;
-
+        <div class="toast-progress"></div>`;
     container.appendChild(toast);
-
-    // Trigger animasi masuk
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => toast.classList.add('show'));
-    });
-
-    // Auto dismiss setelah 4 detik
+    requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('show')));
     setTimeout(() => dismissToast(toast), 4000);
 }
-
 function dismissToast(toast) {
     if (!toast || toast.classList.contains('hide')) return;
-    toast.classList.add('hide');
-    toast.classList.remove('show');
+    toast.classList.add('hide'); toast.classList.remove('show');
     setTimeout(() => toast?.remove(), 350);
 }
 
-// ── Trigger dari session Laravel ────────────────────────────────
 @if(session('success'))
-    document.addEventListener('DOMContentLoaded', function() {
-        showToast(@json(session('success')), 'success');
-    });
+document.addEventListener('DOMContentLoaded', () => showToast(@json(session('success')), 'success'));
 @endif
-
 @if(session('error'))
-    document.addEventListener('DOMContentLoaded', function() {
-        showToast(@json(session('error')), 'error');
-    });
+document.addEventListener('DOMContentLoaded', () => showToast(@json(session('error')), 'error'));
 @endif
 
 // ── Edit Modal ──────────────────────────────────────────────────
-function openEditModal(id, name, categoryId, price, stock, description) {
+function openEditModal(id, name, categoryId, price, stock, description, existingImage) {
     document.getElementById('formEdit').action = '/admin/products/' + id;
     document.getElementById('edit_name').value        = name;
     document.getElementById('edit_category_id').value = categoryId;
     document.getElementById('edit_price').value       = price;
     document.getElementById('edit_stock').value       = stock;
     document.getElementById('edit_description').value = description;
+
+    // Reset crop edit
+    clearCrop('edit');
+
+    // Tampilkan gambar existing di bingkai jika ada
+    if (existingImage) {
+        const areaEl = document.getElementById('cropEditArea');
+        const holdEl = document.getElementById('cropEditPlaceholder');
+        const toolEl = document.getElementById('cropEditToolbar');
+        const imgEl  = document.getElementById('cropEditImage');
+
+        imgEl.onload = function() {
+            const wrapEl = areaEl.parentElement;
+            const boxW   = wrapEl.offsetWidth  || 220;
+            const boxH   = wrapEl.offsetHeight || 293; // rasio 3:4
+            const nat    = { w: imgEl.naturalWidth, h: imgEl.naturalHeight };
+            const scale  = Math.max(boxW / nat.w, boxH / nat.h);
+            const iW     = nat.w * scale;
+            const iH     = nat.h * scale;
+            cropState['edit'] = {
+                scale, x: (boxW-iW)/2, y: (boxH-iH)/2,
+                iW, iH, boxW, boxH, nat, scale0: scale
+            };
+            clampPos(cropState['edit']);
+            applyTransform('edit');
+        };
+        imgEl.src = existingImage;
+        areaEl.classList.remove('hidden');
+        holdEl.classList.add('hidden');
+        toolEl.classList.remove('hidden');
+        toolEl.classList.add('flex');
+        setupDrag(areaEl, 'edit');
+    }
+
     document.getElementById('modalEdit').classList.remove('hidden');
 }
 
-// Close modal on backdrop click
+// ── Submit form — render crop ke canvas dulu ──────────────────
+document.querySelector('#modalTambah form')?.addEventListener('submit', function() {
+    if (cropState['tambah']) renderCropToCanvas('tambah');
+});
+document.getElementById('formEdit')?.addEventListener('submit', function() {
+    if (cropState['edit']) renderCropToCanvas('edit');
+});
+
+// ── Close modal on backdrop click ────────────────────────────
 ['modalTambah', 'modalEdit'].forEach(function(id) {
     document.getElementById(id).addEventListener('click', function(e) {
         if (e.target === this) this.classList.add('hidden');
     });
 });
 
-// Auto-submit sort & kategori
+// ── Auto-submit sort & kategori ─────────────────────────────
 document.querySelectorAll('select[name="sort"], select[name="category"]').forEach(function(el) {
     el.addEventListener('change', function() {
         this.closest('form').submit();
@@ -641,3 +978,4 @@ document.querySelectorAll('select[name="sort"], select[name="category"]').forEac
 });
 </script>
 @endpush
+

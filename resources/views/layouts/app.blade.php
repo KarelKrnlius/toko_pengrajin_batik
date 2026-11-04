@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+*qw <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="utf-8"/>
@@ -168,29 +168,29 @@
         </div>
 
         {{-- Right Side --}}
-        <div class="flex items-center gap-space-md">
+        <div class="flex items-center gap-3">
             {{-- Search --}}
             <form action="{{ route('catalog') }}" method="GET"
-                  class="hidden md:flex items-center bg-surface-container-low px-space-md py-space-xs rounded-xl shadow-[0_1px_4px_rgba(74,46,27,0.04)] w-64">
-                <span class="material-symbols-outlined text-outline text-[20px] mr-space-xs">search</span>
+                  class="hidden md:flex items-center bg-surface-container-low px-3 py-2 rounded-lg shadow-sm w-64 h-9">
+                <span class="material-symbols-outlined text-outline text-[18px] mr-1.5 flex-shrink-0">search</span>
                 <input name="search" value="{{ request('search') }}"
-                       class="bg-transparent text-on-surface text-body-sm font-body-sm placeholder:text-outline focus:outline-none w-full"
+                       class="bg-transparent text-on-surface text-sm placeholder:text-outline focus:outline-none w-full h-full"
                        placeholder="Cari motif Parang, Kawung..."/>
             </form>
 
-            <div class="flex items-center gap-space-sm">
+            {{-- Login / User Menu --}}
+            <div class="flex items-center gap-3 h-9">
                 @auth
-                {{-- Admin sudah login: tampilkan nama + dropdown --}}
+                {{-- User/Admin sudah login --}}
                 <div class="relative hidden sm:block" id="userMenuWrap">
                     <button id="userMenuBtn" type="button"
-                            class="flex items-center gap-space-xs px-space-md py-space-xs bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md rounded-lg transition-colors">
+                            class="flex items-center gap-1.5 px-3 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface text-sm font-semibold rounded-lg transition-colors h-9 shadow-sm">
                         <div class="w-6 h-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
                             <span class="material-symbols-outlined text-on-primary text-[14px]">person</span>
                         </div>
                         <span class="max-w-[120px] truncate">{{ Auth::user()->name }}</span>
                         <span class="material-symbols-outlined text-[16px] text-outline">expand_more</span>
                     </button>
-                    {{-- Dropdown --}}
                     <div id="userDropdown"
                          class="hidden absolute right-0 top-full mt-2 w-52 bg-surface-container-lowest rounded-xl shadow-xl border border-outline-variant overflow-hidden z-50">
                         <div class="px-space-md py-space-sm border-b border-outline-variant">
@@ -198,11 +198,36 @@
                             <p class="font-label-lg text-label-lg text-primary font-bold truncate">{{ Auth::user()->name }}</p>
                             <p class="text-[11px] text-on-surface-variant truncate">{{ Auth::user()->email }}</p>
                         </div>
-                        <a href="{{ route('admin.products.index') }}"
-                           class="flex items-center gap-space-sm px-space-md py-space-sm hover:bg-surface-container transition-colors text-on-surface font-label-md text-label-md">
-                            <span class="material-symbols-outlined text-secondary text-[18px]">grid_view</span>
-                            <span>Panel Produk</span>
-                        </a>
+
+                        @if(Auth::user()->isAdmin())
+                            {{-- Menu Admin --}}
+                            <a href="{{ route('admin.products.index') }}"
+                               class="flex items-center gap-space-sm px-space-md py-space-sm hover:bg-surface-container transition-colors text-on-surface font-label-md text-label-md">
+                                <span class="material-symbols-outlined text-secondary text-[18px]">shield_person</span>
+                                <span>Portal Kurator</span>
+                            </a>
+                        @else
+                            {{-- Menu User --}}
+                            <a href="{{ route('cart.index') }}"
+                               class="flex items-center gap-space-sm px-space-md py-space-sm hover:bg-surface-container transition-colors text-on-surface font-label-md text-label-md">
+                                <span class="material-symbols-outlined text-secondary text-[18px]">shopping_bag</span>
+                                <span>Keranjang</span>
+                                @php $cartCount = \App\Models\Cart::where('user_id', Auth::id())->sum('quantity'); @endphp
+                                @if($cartCount > 0)
+                                    <span class="ml-auto bg-secondary text-on-secondary text-[9px] font-bold px-1.5 py-0.5 rounded-full">{{ $cartCount }}</span>
+                                @endif
+                            </a>
+                            <a href="{{ route('favorites.index') }}"
+                               class="flex items-center gap-space-sm px-space-md py-space-sm hover:bg-surface-container transition-colors text-on-surface font-label-md text-label-md">
+                                <span class="material-symbols-outlined text-secondary text-[18px]">favorite</span>
+                                <span>Favorit</span>
+                                @php $favCount = \App\Models\Favorite::where('user_id', Auth::id())->count(); @endphp
+                                @if($favCount > 0)
+                                    <span class="ml-auto bg-secondary text-on-secondary text-[9px] font-bold px-1.5 py-0.5 rounded-full">{{ $favCount }}</span>
+                                @endif
+                            </a>
+                        @endif
+
                         <form action="{{ route('logout') }}" method="POST">
                             @csrf
                             <button type="submit"
@@ -214,11 +239,16 @@
                     </div>
                 </div>
                 @else
-                {{-- Belum login: tombol Portal Kurator → ke halaman login --}}
+                {{-- Belum login: tombol Login + Daftar --}}
                 <a href="{{ route('login') }}"
-                   class="hidden sm:flex items-center gap-space-xs px-space-md py-space-xs bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md rounded-lg transition-colors">
-                    <span class="material-symbols-outlined text-[16px] text-secondary">shield_person</span>
-                    <span>Portal Kurator</span>
+                   class="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface text-sm font-semibold rounded-lg transition-colors h-9 shadow-sm">
+                    <span class="material-symbols-outlined text-[16px] text-secondary">login</span>
+                    <span>Login</span>
+                </a>
+                <a href="{{ route('register') }}"
+                   class="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-primary hover:bg-secondary text-on-primary text-sm font-semibold rounded-lg transition-colors h-9 shadow-sm">
+                    <span class="material-symbols-outlined text-[16px]">person_add</span>
+                    <span>Daftar</span>
                 </a>
                 @endauth
 
@@ -237,9 +267,18 @@
         <a href="{{ route('about') }}" class="font-label-lg text-label-lg {{ request()->routeIs('about') ? 'text-primary font-bold' : 'text-on-surface-variant' }} py-space-xs">Filosofi Motif</a>
         <div class="border-t border-surface-container pt-space-sm mt-space-xs">
             @auth
-                <a href="{{ route('admin.products.index') }}" class="flex items-center gap-space-xs font-label-lg text-label-lg text-secondary py-space-xs">
-                    <span class="material-symbols-outlined text-[16px]">grid_view</span> Panel Produk
-                </a>
+                @if(Auth::user()->isAdmin())
+                    <a href="{{ route('admin.products.index') }}" class="flex items-center gap-space-xs font-label-lg text-label-lg text-secondary py-space-xs">
+                        <span class="material-symbols-outlined text-[16px]">shield_person</span> Portal Kurator
+                    </a>
+                @else
+                    <a href="{{ route('cart.index') }}" class="flex items-center gap-space-xs font-label-lg text-label-lg text-on-surface py-space-xs">
+                        <span class="material-symbols-outlined text-[16px]">shopping_bag</span> Keranjang
+                    </a>
+                    <a href="{{ route('favorites.index') }}" class="flex items-center gap-space-xs font-label-lg text-label-lg text-on-surface py-space-xs">
+                        <span class="material-symbols-outlined text-[16px]">favorite</span> Favorit
+                    </a>
+                @endif
                 <form action="{{ route('logout') }}" method="POST">
                     @csrf
                     <button type="submit" class="flex items-center gap-space-xs font-label-lg text-label-lg text-error py-space-xs w-full text-left">
@@ -248,7 +287,10 @@
                 </form>
             @else
                 <a href="{{ route('login') }}" class="flex items-center gap-space-xs font-label-lg text-label-lg text-secondary py-space-xs">
-                    <span class="material-symbols-outlined text-[16px]">shield_person</span> Portal Kurator
+                    <span class="material-symbols-outlined text-[16px]">login</span> Login
+                </a>
+                <a href="{{ route('register') }}" class="flex items-center gap-space-xs font-label-lg text-label-lg text-on-surface-variant py-space-xs">
+                    <span class="material-symbols-outlined text-[16px]">person_add</span> Daftar
                 </a>
             @endauth
         </div>
