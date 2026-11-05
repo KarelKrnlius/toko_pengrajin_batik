@@ -64,16 +64,12 @@
 <div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin pt-space-lg pb-space-xl">
 
     {{-- Breadcrumb --}}
-    <div class="flex flex-wrap items-center justify-between gap-space-sm mb-space-md">
+    <div class="flex items-center justify-between gap-space-sm mb-space-md">
         <nav class="flex items-center gap-space-xs text-on-surface-variant font-label-md text-label-md">
             <a href="{{ route('home') }}" class="hover:text-primary transition-colors">Beranda</a>
             <span class="material-symbols-outlined text-[14px] text-outline">chevron_right</span>
             <span class="text-primary font-semibold">Katalog Wastra Nusantara</span>
         </nav>
-        <div class="flex items-center gap-space-xs bg-surface-container px-space-md py-space-xs rounded-full">
-            <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
-            <span class="font-label-sm text-label-sm text-secondary uppercase tracking-widest">Kurasi Resmi Dalem Keraton Surakarta</span>
-        </div>
     </div>
 
     {{-- Page Header --}}

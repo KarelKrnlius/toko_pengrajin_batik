@@ -34,6 +34,7 @@ class ProductController extends Controller
         // Sort
         $sort      = $request->get('sort', 'terbaru');
         $sortLabel = match ($sort) {
+            'terlama'    => 'Terlama',
             'nama_az'    => 'Nama A–Z',
             'nama_za'    => 'Nama Z–A',
             'harga_naik' => 'Harga Terendah',
@@ -44,6 +45,7 @@ class ProductController extends Controller
         };
 
         $query = match ($sort) {
+            'terlama'    => $query->oldest(),
             'nama_az'    => $query->orderBy('name'),
             'nama_za'    => $query->orderByDesc('name'),
             'harga_naik' => $query->orderBy('price'),

@@ -66,10 +66,6 @@
             <span class="material-symbols-outlined text-[14px] text-outline">chevron_right</span>
             <span class="text-secondary font-bold line-clamp-1 max-w-[200px]">{{ $product->name }}</span>
         </nav>
-        <div class="hidden sm:flex items-center gap-space-xs bg-surface-container px-space-sm py-1 rounded-full text-on-surface-variant font-label-sm text-label-sm tracking-wider">
-            <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
-            <span>KURASI ARCHIVE NO. JB-{{ strtoupper(substr($product->category->name ?? 'BTK', 0, 3)) }}-{{ date('Y') }}-{{ str_pad($product->id, 2, '0', STR_PAD_LEFT) }}</span>
-        </div>
     </div>
 </section>
 
@@ -78,13 +74,13 @@
     <div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-start">
 
-            {{-- ── Kolom Kiri: Gambar ── --}}
-            <div class="lg:col-span-5 flex flex-col gap-space-lg">
-                <div class="relative bg-surface-container-lowest rounded-xl p-space-sm shadow-md overflow-hidden">
+            {{-- ── Kolom Kiri: Gambar (Ukuran lebih besar & responsive) ── --}}
+            <div class="lg:col-span-5 flex flex-col gap-space-lg w-full max-w-md mx-auto lg:max-w-none">
+                <div class="relative bg-surface-container-lowest rounded-xl p-3 sm:p-4 shadow-md overflow-hidden max-w-[460px] mx-auto w-full">
 
                     {{-- Foto utama — klik untuk zoom --}}
-                    <div class="relative rounded-lg overflow-hidden bg-surface-container"
-                         style="aspect-ratio:3/4; max-width:340px; margin:0 auto;">
+                    <div class="relative rounded-lg overflow-hidden bg-surface-container w-full"
+                         style="aspect-ratio:3/4; max-width:420px; margin:0 auto;">
                         @if($product->image)
                             <img alt="{{ $product->name }}"
                                  class="w-full h-full object-cover clickable-img transition-transform duration-300 hover:scale-105"
@@ -109,27 +105,21 @@
                         </div>
                     </div>
 
-                    {{-- Provenance Ledger --}}
-                    <div class="mt-3 flex flex-wrap items-center justify-between gap-2 bg-surface-container-low px-3 py-2 rounded-lg">
-                        <div class="flex items-center gap-1">
-                            <span class="material-symbols-outlined text-secondary text-[16px]">fingerprint</span>
+                    {{-- Info Stok & Sertifikasi --}}
+                    <div class="mt-3 flex items-center justify-around gap-2 bg-surface-container-low px-3 py-2 rounded-lg">
+                        <div class="flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-secondary text-[18px]">history_edu</span>
                             <div>
-                                <span class="block text-[9px] text-outline uppercase">Register</span>
-                                <span class="text-[11px] text-primary font-bold">JB-{{ strtoupper(substr($product->category->name ?? 'BTK', 0, 3)) }}-{{ date('Y') }}-{{ str_pad($product->id, 2, '0', STR_PAD_LEFT) }}</span>
+                                <span class="block text-[9px] text-outline uppercase font-semibold">Stok</span>
+                                <span class="text-[12px] text-primary font-bold">{{ $product->stock }} pcs</span>
                             </div>
                         </div>
-                        <div class="flex items-center gap-1">
-                            <span class="material-symbols-outlined text-secondary text-[16px]">history_edu</span>
+                        <div class="h-6 w-px bg-outline-variant/60"></div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-secondary text-[18px]">award_star</span>
                             <div>
-                                <span class="block text-[9px] text-outline uppercase">Stok</span>
-                                <span class="text-[11px] text-primary font-bold">{{ $product->stock }} pcs</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-1">
-                            <span class="material-symbols-outlined text-secondary text-[16px]">award_star</span>
-                            <div>
-                                <span class="block text-[9px] text-outline uppercase">Sertifikasi</span>
-                                <span class="text-[11px] text-primary font-bold">Batik Mark</span>
+                                <span class="block text-[9px] text-outline uppercase font-semibold">Sertifikasi</span>
+                                <span class="text-[12px] text-primary font-bold">Batik Mark</span>
                             </div>
                         </div>
                     </div>
@@ -138,7 +128,7 @@
 
             {{-- ── Kolom Kanan: Info & Pembelian ── --}}
             <div class="lg:col-span-7 flex flex-col gap-space-lg">
-                <div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-md flex flex-col gap-space-md">
+                <div class="bg-surface-container-lowest p-4 sm:p-space-lg rounded-xl shadow-md flex flex-col gap-space-md">
 
                     <div class="flex flex-col gap-space-xs">
                         <div class="flex items-center justify-between">
@@ -257,7 +247,7 @@
                         @endauth
                     </div>
 
-                    <div class="grid grid-cols-2 gap-space-sm pt-space-sm bg-surface-container-low p-space-sm rounded-lg text-on-surface-variant font-label-sm text-label-sm">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm pt-space-sm bg-surface-container-low p-space-sm rounded-lg text-on-surface-variant font-label-sm text-label-sm">
                         <div class="flex items-center gap-2">
                             <span class="material-symbols-outlined text-secondary text-[18px]">verified</span>
                             <span>Garansi Kemurnian Kain 100%</span>
@@ -270,7 +260,6 @@
 
                     <div class="flex flex-col gap-space-xs pt-space-sm">
                         @foreach ([
-                            ['acc-filosofi', 'spa',          'Filosofi Motif',             'Setiap motif batik menyimpan makna filosofis mendalam yang diwariskan dari tradisi keraton Jawa. Motif ini melambangkan keselarasan batin, keteguhan jiwa, dan kearifan leluhur yang terus dijaga oleh para pengrajin generasi ke generasi.'],
                             ['acc-rawat',    'dry_cleaning',  'Panduan Perawatan Kain',      '<ul class="list-disc pl-4 space-y-1"><li>Cuci menggunakan sari buah lerak alami atau sabun khusus batik.</li><li>Jangan diperas kasar; angin-anginkan di tempat teduh.</li><li>Setrika dengan alas kain pelindung suhu sedang rendah.</li><li>Simpan bersama akar wangi alami.</li></ul>'],
                             ['acc-sertif',   'verified_user', 'Garansi Keaslian Batik Mark', 'Karya ini menyandang sertifikat resmi <strong>Batik Mark Indonesia</strong> bertaraf Kementerian Perindustrian RI, dilengkapi sertifikat fisik bertanda tangan Maestro Pembatik.'],
                         ] as [$id, $icon, $title, $body])
@@ -292,43 +281,6 @@
                 </div>
             </div>
 
-        </div>
-    </div>
-</section>
-
-{{-- Artisan Narrative --}}
-<section class="w-full bg-surface-container py-space-xl">
-    <div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin">
-        <div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-md grid grid-cols-1 md:grid-cols-3 gap-space-xl items-center">
-            <div class="flex flex-col gap-space-xs">
-                <span class="font-label-sm text-label-sm text-secondary uppercase tracking-[0.2em] font-bold">PROSES ATELIER</span>
-                <h2 class="font-headline-sm text-headline-sm text-primary">Keahlian Adiluhung Tangan Maestro</h2>
-                <p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
-                    Dibuat di bengkel canting Laweyan, Surakarta dengan canting tembaga untuk detail isen-isen cecek super halus.
-                </p>
-            </div>
-            <div class="flex flex-col gap-space-sm bg-surface-container-low p-space-md rounded-lg">
-                <div class="flex items-center justify-between">
-                    <span class="font-label-sm text-label-sm text-outline uppercase">Indeks Kerumitan Pola</span>
-                    <span class="font-label-md text-label-md text-secondary font-bold">Tingkat 4/5</span>
-                </div>
-                <div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
-                    <div class="bg-secondary h-full rounded-full" style="width:85%;"></div>
-                </div>
-                <div class="flex justify-between font-label-sm text-label-sm text-on-surface-variant pt-1">
-                    <span>2.840 Titik Cecek / dm²</span>
-                    <span>3 Tahap Celup Soga</span>
-                </div>
-            </div>
-            <div class="flex items-center gap-space-md">
-                <div class="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center shrink-0 shadow-sm">
-                    <span class="material-symbols-outlined text-secondary text-[32px]">local_florist</span>
-                </div>
-                <div class="flex flex-col">
-                    <span class="font-title-lg text-title-lg text-primary">Pewarnaan Soga Jawa Alami</span>
-                    <span class="font-body-sm text-body-sm text-on-surface-variant">Ekstrak kulit kayu Mahoni, Tingi, dan Tegeran — warna kian matang seiring usia.</span>
-                </div>
-            </div>
         </div>
     </div>
 </section>

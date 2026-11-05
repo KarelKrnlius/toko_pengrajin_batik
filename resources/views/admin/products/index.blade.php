@@ -138,19 +138,38 @@
                    class="w-full pl-10 pr-4 py-2.5 bg-surface-container-low border border-outline-variant rounded-lg text-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-secondary transition"/>
         </div>
 
-        {{-- Filter Kategori --}}
-        <div class="relative">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">category</span>
-            <select name="category"
-                    class="pl-9 pr-8 py-2.5 bg-surface-container-low border border-outline-variant rounded-lg text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary appearance-none cursor-pointer min-w-[180px]">
-                <option value="">Semua Kategori</option>
+        {{-- Filter Kategori (Scrollable jika > 5) --}}
+        <div class="relative" id="toolbarCategoryDropdownWrap">
+            <input type="hidden" name="category" id="toolbarCategoryInput" value="{{ request('category') }}">
+            @php
+                $selectedCategory = $categories->firstWhere('id', request('category'));
+                $selectedCategoryName = $selectedCategory ? $selectedCategory->name : 'Semua Kategori';
+            @endphp
+            <button type="button" onclick="toggleToolbarCategoryDropdown()"
+                    class="flex items-center justify-between gap-2 pl-9 pr-3 py-2.5 bg-surface-container-low border border-outline-variant rounded-lg text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary cursor-pointer min-w-[190px] w-full text-left">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">category</span>
+                <span class="truncate" id="toolbarCategoryLabel">{{ $selectedCategoryName }}</span>
+                <span class="material-symbols-outlined text-outline text-[18px] pointer-events-none">expand_more</span>
+            </button>
+            <div id="toolbarCategoryMenu"
+                 class="hidden absolute left-0 top-full mt-1 w-full min-w-[200px] bg-surface-container-lowest border border-outline-variant rounded-lg shadow-xl z-40 max-h-[220px] overflow-y-auto py-1">
+                <div onclick="selectToolbarCategory('', 'Semua Kategori')"
+                     class="px-3 py-2 text-sm text-on-surface hover:bg-surface-container cursor-pointer transition-colors flex items-center justify-between {{ !request('category') ? 'bg-surface-container text-primary font-bold' : '' }}">
+                    <span>Semua Kategori</span>
+                    @if(!request('category'))
+                        <span class="material-symbols-outlined text-[16px] text-secondary">check</span>
+                    @endif
+                </div>
                 @foreach($categories as $cat)
-                    <option value="{{ $cat->id }}" {{ request('category') == $cat->id ? 'selected' : '' }}>
-                        {{ $cat->name }}
-                    </option>
+                    <div onclick="selectToolbarCategory({{ $cat->id }}, '{{ addslashes($cat->name) }}')"
+                         class="px-3 py-2 text-sm text-on-surface hover:bg-surface-container cursor-pointer transition-colors flex items-center justify-between {{ request('category') == $cat->id ? 'bg-surface-container text-primary font-bold' : '' }}">
+                        <span class="truncate">{{ $cat->name }}</span>
+                        @if(request('category') == $cat->id)
+                            <span class="material-symbols-outlined text-[16px] text-secondary">check</span>
+                        @endif
+                    </div>
                 @endforeach
-            </select>
-            <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
+            </div>
         </div>
 
         {{-- Sort --}}
@@ -159,6 +178,7 @@
             <select name="sort"
                     class="pl-9 pr-8 py-2.5 bg-surface-container-low border border-outline-variant rounded-lg text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary appearance-none cursor-pointer min-w-[180px]">
                 <option value="terbaru"     {{ $sort === 'terbaru'     ? 'selected' : '' }}>Terbaru</option>
+                <option value="terlama"     {{ $sort === 'terlama'     ? 'selected' : '' }}>Terlama</option>
                 <option value="nama_az"     {{ $sort === 'nama_az'     ? 'selected' : '' }}>Nama A–Z</option>
                 <option value="nama_za"     {{ $sort === 'nama_za'     ? 'selected' : '' }}>Nama Z–A</option>
                 <option value="harga_naik"  {{ $sort === 'harga_naik'  ? 'selected' : '' }}>Harga Terendah</option>
@@ -507,15 +527,29 @@
                     <input type="text" name="name" required placeholder="Contoh: Kemeja Sutra Parang Rusak Slimfit"
                            class="w-full px-space-md py-space-sm bg-surface-container-low rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary border border-outline-variant"/>
                 </div>
-                <div>
+                <div class="relative" id="comboboxWrap_tambah">
                     <label class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider block mb-1">Kategori <span class="text-error">*</span></label>
-                    <select name="category_id" required
-                            class="w-full px-space-md py-space-sm bg-surface-container-low rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary border border-outline-variant">
-                        <option value="">-- Pilih Kategori --</option>
+                    <input type="hidden" name="category_id" id="tambah_category_id" required value=""/>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">category</span>
+                        <input type="text" id="tambah_category_search" autocomplete="off"
+                               placeholder="Ketik atau cari kategori..."
+                               class="w-full pl-9 pr-8 py-space-sm bg-surface-container-low rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary border border-outline-variant cursor-pointer"
+                               onclick="openCategoryCombobox('tambah')" oninput="filterCategoryCombobox('tambah')" onfocus="openCategoryCombobox('tambah')"/>
+                        <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
+                    </div>
+                    <div id="tambah_category_list" class="hidden absolute left-0 right-0 top-full mt-1 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto py-1">
                         @foreach($categories as $cat)
-                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                            <div class="px-3 py-2 text-sm text-on-surface hover:bg-surface-container cursor-pointer transition-colors flex items-center justify-between category-item"
+                                 data-id="{{ $cat->id }}" data-name="{{ strtolower($cat->name) }}"
+                                 onclick="selectCategoryCombobox('tambah', {{ $cat->id }}, '{{ addslashes($cat->name) }}')">
+                                <span>{{ $cat->name }}</span>
+                            </div>
                         @endforeach
-                    </select>
+                        <div id="tambah_category_empty" class="hidden px-3 py-2 text-xs text-outline italic text-center">
+                            Kategori tidak ditemukan
+                        </div>
+                    </div>
                 </div>
                 <div>
                     <label class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider block mb-1">Harga (Rp) <span class="text-error">*</span></label>
@@ -530,9 +564,9 @@
                 <div>
                     <label class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider block mb-1">Gambar Produk</label>
 
-                    {{-- Bingkai Cropper Tambah --}}
-                    <div class="w-full mb-2 rounded-lg border-2 border-dashed border-outline-variant bg-surface-container-low overflow-hidden relative"
-                         style="aspect-ratio:3/4; max-height:280px;">
+                    {{-- Bingkai Cropper Tambah — rasio 3:4 persis katalog produk --}}
+                    <div class="mx-auto mb-2 rounded-xl border-2 border-dashed border-outline-variant bg-surface-container-low overflow-hidden relative shadow-inner"
+                         style="width:210px; height:280px; aspect-ratio:3/4;">
 
                         {{-- Placeholder --}}
                         <div id="cropTambahPlaceholder"
@@ -640,14 +674,29 @@
                     <input type="text" name="name" id="edit_name" required
                            class="w-full px-space-md py-space-sm bg-surface-container-low rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary border border-outline-variant"/>
                 </div>
-                <div>
+                <div class="relative" id="comboboxWrap_edit">
                     <label class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider block mb-1">Kategori <span class="text-error">*</span></label>
-                    <select name="category_id" id="edit_category_id" required
-                            class="w-full px-space-md py-space-sm bg-surface-container-low rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary border border-outline-variant">
+                    <input type="hidden" name="category_id" id="edit_category_id" required value=""/>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">category</span>
+                        <input type="text" id="edit_category_search" autocomplete="off"
+                               placeholder="Ketik atau cari kategori..."
+                               class="w-full pl-9 pr-8 py-space-sm bg-surface-container-low rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary border border-outline-variant cursor-pointer"
+                               onclick="openCategoryCombobox('edit')" oninput="filterCategoryCombobox('edit')" onfocus="openCategoryCombobox('edit')"/>
+                        <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
+                    </div>
+                    <div id="edit_category_list" class="hidden absolute left-0 right-0 top-full mt-1 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto py-1">
                         @foreach($categories as $cat)
-                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                            <div class="px-3 py-2 text-sm text-on-surface hover:bg-surface-container cursor-pointer transition-colors flex items-center justify-between category-item"
+                                 data-id="{{ $cat->id }}" data-name="{{ strtolower($cat->name) }}"
+                                 onclick="selectCategoryCombobox('edit', {{ $cat->id }}, '{{ addslashes($cat->name) }}')">
+                                <span>{{ $cat->name }}</span>
+                            </div>
                         @endforeach
-                    </select>
+                        <div id="edit_category_empty" class="hidden px-3 py-2 text-xs text-outline italic text-center">
+                            Kategori tidak ditemukan
+                        </div>
+                    </div>
                 </div>
                 <div>
                     <label class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider block mb-1">Harga (Rp) <span class="text-error">*</span></label>
@@ -662,9 +711,9 @@
                 <div>
                     <label class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider block mb-1">Gambar Baru (opsional)</label>
 
-                    {{-- Bingkai Cropper Edit --}}
-                    <div class="w-full mb-2 rounded-lg border-2 border-dashed border-outline-variant bg-surface-container-low overflow-hidden relative"
-                         style="aspect-ratio:3/4; max-height:280px;">
+                    {{-- Bingkai Cropper Edit — rasio 3:4 persis katalog produk --}}
+                    <div class="mx-auto mb-2 rounded-xl border-2 border-dashed border-outline-variant bg-surface-container-low overflow-hidden relative shadow-inner"
+                         style="width:210px; height:280px; aspect-ratio:3/4;">
 
                         <div id="cropEditPlaceholder"
                              class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-outline cursor-pointer select-none"
@@ -765,8 +814,8 @@ function initCrop(input, mode) {
 
         imgEl.onload = function() {
             const wrapEl = areaEl.parentElement;
-            const boxW   = wrapEl.offsetWidth;
-            const boxH   = wrapEl.offsetHeight;
+            const boxW   = wrapEl.offsetWidth || 210;
+            const boxH   = wrapEl.offsetHeight || 280;
             const nat    = { w: imgEl.naturalWidth, h: imgEl.naturalHeight };
 
             // Hitung scale agar gambar cover penuh bingkai
@@ -777,6 +826,7 @@ function initCrop(input, mode) {
             const y      = (boxH - iH) / 2;
 
             cropState[mode] = { scale, x, y, iW, iH, boxW, boxH, nat, scale0: scale };
+            clampPos(cropState[mode]);
             applyTransform(mode);
         };
         imgEl.src = e.target.result;
@@ -811,7 +861,9 @@ function applyTransform(mode) {
 function cropZoom(mode, delta) {
     const s = cropState[mode];
     if (!s) return;
-    const newScale = Math.max(s.scale0, s.scale + delta * s.scale);
+    const minScale = s.scale0 * 0.8;
+    const maxScale = s.scale0 * 4;
+    const newScale = Math.min(maxScale, Math.max(minScale, s.scale + delta * s.scale));
     const ratio    = newScale / s.scale;
     s.iW   *= ratio;
     s.iH   *= ratio;
@@ -839,11 +891,19 @@ function cropReset(mode) {
 }
 
 function clampPos(s) {
-    // Gambar harus selalu cover penuh bingkai — tidak boleh ada space
-    if (s.x > 0) s.x = 0;
-    if (s.y > 0) s.y = 0;
-    if (s.x + s.iW < s.boxW) s.x = s.boxW - s.iW;
-    if (s.y + s.iH < s.boxH) s.y = s.boxH - s.iH;
+    // Geser bebas dengan batas bingkai (bisa digeser-geser horizontal dan vertikal)
+    if (s.iW <= s.boxW) {
+        s.x = (s.boxW - s.iW) / 2;
+    } else {
+        if (s.x > 0) s.x = 0;
+        if (s.x + s.iW < s.boxW) s.x = s.boxW - s.iW;
+    }
+    if (s.iH <= s.boxH) {
+        s.y = (s.boxH - s.iH) / 2;
+    } else {
+        if (s.y > 0) s.y = 0;
+        if (s.y + s.iH < s.boxH) s.y = s.boxH - s.iH;
+    }
 }
 
 function clearCrop(mode) {
@@ -858,17 +918,21 @@ function clearCrop(mode) {
 }
 
 function setupDrag(areaEl, mode) {
+    if (areaEl._dragSetup) return;
+    areaEl._dragSetup = true;
+
     let dragging = false, startX, startY, startOX, startOY;
 
     // Touch
     areaEl.addEventListener('touchstart', e => {
+        if (!cropState[mode]) return;
         dragging = true;
         startX = e.touches[0].clientX; startY = e.touches[0].clientY;
         startOX = cropState[mode].x; startOY = cropState[mode].y;
         e.preventDefault();
     }, { passive: false });
     areaEl.addEventListener('touchmove', e => {
-        if (!dragging) return;
+        if (!dragging || !cropState[mode]) return;
         const dx = e.touches[0].clientX - startX;
         const dy = e.touches[0].clientY - startY;
         cropState[mode].x = startOX + dx;
@@ -881,12 +945,13 @@ function setupDrag(areaEl, mode) {
 
     // Mouse
     areaEl.addEventListener('mousedown', e => {
+        if (!cropState[mode]) return;
         dragging = true;
         startX = e.clientX; startY = e.clientY;
         startOX = cropState[mode].x; startOY = cropState[mode].y;
     });
     document.addEventListener('mousemove', e => {
-        if (!dragging) return;
+        if (!dragging || !cropState[mode]) return;
         cropState[mode].x = startOX + (e.clientX - startX);
         cropState[mode].y = startOY + (e.clientY - startY);
         clampPos(cropState[mode]);
@@ -983,10 +1048,14 @@ document.addEventListener('DOMContentLoaded', () => showToast(@json(session('err
 function openEditModal(id, name, categoryId, price, stock, description, existingImage) {
     document.getElementById('formEdit').action = '/admin/products/' + id;
     document.getElementById('edit_name').value        = name;
-    document.getElementById('edit_category_id').value = categoryId;
     document.getElementById('edit_price').value       = price;
     document.getElementById('edit_stock').value       = stock;
     document.getElementById('edit_description').value = description;
+
+    // Set category combobox in edit
+    const itemEl = document.querySelector(`#edit_category_list .category-item[data-id="${categoryId}"]`);
+    const catName = itemEl ? itemEl.querySelector('span').textContent.trim() : '';
+    selectCategoryCombobox('edit', categoryId, catName);
 
     // Reset crop edit
     clearCrop('edit');
@@ -1000,8 +1069,8 @@ function openEditModal(id, name, categoryId, price, stock, description, existing
 
         imgEl.onload = function() {
             const wrapEl = areaEl.parentElement;
-            const boxW   = wrapEl.offsetWidth  || 220;
-            const boxH   = wrapEl.offsetHeight || 293; // rasio 3:4
+            const boxW   = wrapEl.offsetWidth  || 210;
+            const boxH   = wrapEl.offsetHeight || 280; // rasio 3:4 persis katalog
             const nat    = { w: imgEl.naturalWidth, h: imgEl.naturalHeight };
             const scale  = Math.max(boxW / nat.w, boxH / nat.h);
             const iW     = nat.w * scale;
@@ -1023,6 +1092,94 @@ function openEditModal(id, name, categoryId, price, stock, description, existing
 
     document.getElementById('modalEdit').classList.remove('hidden');
 }
+
+// ── Toolbar Filter Kategori Dropdown (Scrollable jika > 5) ────
+function toggleToolbarCategoryDropdown() {
+    const menu = document.getElementById('toolbarCategoryMenu');
+    if (!menu) return;
+    menu.classList.toggle('hidden');
+}
+
+function selectToolbarCategory(id, name) {
+    document.getElementById('toolbarCategoryInput').value = id;
+    document.getElementById('toolbarCategoryLabel').textContent = name;
+    document.getElementById('toolbarCategoryMenu').classList.add('hidden');
+    document.getElementById('toolbarCategoryInput').closest('form').submit();
+}
+
+// ── Combobox Kategori (Bisa diketik & scroll jika > 5) ────────
+function openCategoryCombobox(mode) {
+    const list = document.getElementById(mode + '_category_list');
+    if (!list) return;
+    list.classList.remove('hidden');
+    const items = list.querySelectorAll('.category-item');
+    items.forEach(el => el.classList.remove('hidden'));
+    document.getElementById(mode + '_category_empty').classList.add('hidden');
+}
+
+function toggleCategoryCombobox(mode) {
+    const list = document.getElementById(mode + '_category_list');
+    if (!list) return;
+    if (list.classList.contains('hidden')) {
+        openCategoryCombobox(mode);
+    } else {
+        list.classList.add('hidden');
+    }
+}
+
+function filterCategoryCombobox(mode) {
+    const input = document.getElementById(mode + '_category_search');
+    const query = input.value.trim().toLowerCase();
+    const list  = document.getElementById(mode + '_category_list');
+    if (!list) return;
+    list.classList.remove('hidden');
+
+    const items = list.querySelectorAll('.category-item');
+    let visibleCount = 0;
+    items.forEach(item => {
+        const name = (item.getAttribute('data-name') || '').toLowerCase();
+        if (!query || name.includes(query)) {
+            item.classList.remove('hidden');
+            visibleCount++;
+        } else {
+            item.classList.add('hidden');
+        }
+    });
+
+    const emptyEl = document.getElementById(mode + '_category_empty');
+    if (visibleCount === 0) {
+        emptyEl.classList.remove('hidden');
+    } else {
+        emptyEl.classList.add('hidden');
+    }
+}
+
+function selectCategoryCombobox(mode, id, name) {
+    document.getElementById(mode + '_category_id').value = id;
+    document.getElementById(mode + '_category_search').value = name;
+    const list = document.getElementById(mode + '_category_list');
+    if (list) list.classList.add('hidden');
+}
+
+// Tutup dropdown jika klik di luar
+document.addEventListener('click', function(e) {
+    // Toolbar category
+    const tbWrap = document.getElementById('toolbarCategoryDropdownWrap');
+    const tbMenu = document.getElementById('toolbarCategoryMenu');
+    if (tbWrap && tbMenu && !tbWrap.contains(e.target)) {
+        tbMenu.classList.add('hidden');
+    }
+    // Tambah combobox
+    const cbTambah = document.getElementById('comboboxWrap_tambah');
+    if (cbTambah && !cbTambah.contains(e.target)) {
+        document.getElementById('tambah_category_list')?.classList.add('hidden');
+    }
+    // Edit combobox
+    const cbEdit = document.getElementById('comboboxWrap_edit');
+    if (cbEdit && !cbEdit.contains(e.target)) {
+        document.getElementById('edit_category_list')?.classList.add('hidden');
+    }
+});
 
 // ── Submit form — render crop ke canvas dulu ──────────────────
 document.querySelector('#modalTambah form')?.addEventListener('submit', function() {
@@ -1222,24 +1379,47 @@ function deleteCategory(id, name) {
 }
 
 function refreshCategoryDropdowns(cat) {
-    const selects = document.querySelectorAll('select[name="category_id"], select[name="category"]');
-    selects.forEach(sel => {
-        // Cek apakah sudah ada
-        const existing = sel.querySelector(`option[value="${cat.id}"]`);
-        if (!existing) {
-            const opt = document.createElement('option');
-            opt.value = cat.id;
-            opt.textContent = cat.name;
-            sel.appendChild(opt);
+    // 1. Toolbar menu
+    const tbMenu = document.getElementById('toolbarCategoryMenu');
+    if (tbMenu && !tbMenu.querySelector(`[onclick*="selectToolbarCategory(${cat.id},"]`)) {
+        const item = document.createElement('div');
+        item.className = 'px-3 py-2 text-sm text-on-surface hover:bg-surface-container cursor-pointer transition-colors flex items-center justify-between';
+        item.setAttribute('onclick', `selectToolbarCategory(${cat.id}, '${escapeHtml(cat.name)}')`);
+        item.innerHTML = `<span class="truncate">${escapeHtml(cat.name)}</span>`;
+        tbMenu.appendChild(item);
+    }
+
+    // 2. Comboboxes (tambah & edit)
+    ['tambah', 'edit'].forEach(mode => {
+        const list = document.getElementById(mode + '_category_list');
+        if (list && !list.querySelector(`.category-item[data-id="${cat.id}"]`)) {
+            const emptyEl = document.getElementById(mode + '_category_empty');
+            const item = document.createElement('div');
+            item.className = 'px-3 py-2 text-sm text-on-surface hover:bg-surface-container cursor-pointer transition-colors flex items-center justify-between category-item';
+            item.setAttribute('data-id', cat.id);
+            item.setAttribute('data-name', cat.name.toLowerCase());
+            item.setAttribute('onclick', `selectCategoryCombobox('${mode}', ${cat.id}, '${escapeHtml(cat.name)}')`);
+            item.innerHTML = `<span>${escapeHtml(cat.name)}</span>`;
+            list.insertBefore(item, emptyEl);
         }
     });
 }
 
 function removeCategoryFromDropdowns(id) {
-    const selects = document.querySelectorAll('select[name="category_id"], select[name="category"]');
-    selects.forEach(sel => {
-        const opt = sel.querySelector(`option[value="${id}"]`);
-        if (opt) { opt.remove(); }
+    // 1. Toolbar menu
+    const tbItem = document.querySelector(`#toolbarCategoryMenu [onclick*="selectToolbarCategory(${id},"]`);
+    if (tbItem) tbItem.remove();
+
+    // 2. Comboboxes
+    ['tambah', 'edit'].forEach(mode => {
+        const item = document.querySelector(`#${mode}_category_list .category-item[data-id="${id}"]`);
+        if (item) item.remove();
+        // Jika sedang terpilih, kosongkan
+        const hiddenId = document.getElementById(`${mode}_category_id`);
+        if (hiddenId && hiddenId.value == id) {
+            hiddenId.value = '';
+            document.getElementById(`${mode}_category_search`).value = '';
+        }
     });
 }
 
