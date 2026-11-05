@@ -180,12 +180,39 @@
                     <div class="flex flex-col gap-space-sm pt-space-xs">
                         @if($product->stock > 0)
                             @auth
-                            <a href="https://wa.me/6281382958012?text={{ urlencode('Halo, saya ingin memesan: ' . $product->name . ' (Rp ' . number_format($product->price, 0, ',', '.') . ')') }}"
-                               target="_blank" rel="noopener"
+                            @if(!Auth::user()->isProfileComplete())
+                            <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-1.5 min-w-0">
+                                    <span class="material-symbols-outlined text-[18px] text-amber-600 flex-shrink-0">info</span>
+                                    <span class="truncate">Profil belum lengkap (nomor HP & alamat).</span>
+                                </div>
+                                <a href="{{ route('profile.show') }}" class="font-bold underline text-secondary hover:text-primary whitespace-nowrap flex-shrink-0">Lengkapi</a>
+                            </div>
+                            <a href="{{ route('profile.show') }}"
+                               class="w-full py-space-md px-space-lg bg-amber-600 hover:bg-amber-700 text-white font-label-lg text-label-lg rounded tracking-widest uppercase transition-all shadow-md flex items-center justify-center gap-space-sm group">
+                                <span class="material-symbols-outlined text-[20px]">badge</span>
+                                <span>Lengkapi Profil untuk Membeli</span>
+                            </a>
+                            @else
+                            @php
+                                $detailWaMsg = "Halo Juragan Batik, saya ingin memesan produk berikut:\n\n"
+                                    . "• Produk: " . $product->name . "\n"
+                                    . ($product->category ? "• Kategori: " . $product->category->name . "\n" : "")
+                                    . "• Harga: Rp " . number_format($product->price, 0, ',', '.') . "\n"
+                                    . "• Jumlah: 1 pcs\n\n"
+                                    . "Data Pemesan:\n"
+                                    . "• Nama: " . Auth::user()->name . "\n"
+                                    . "• Email: " . Auth::user()->email . "\n"
+                                    . "• No. Telepon: " . Auth::user()->phone . "\n"
+                                    . "• Alamat Pengiriman: " . Auth::user()->address;
+                                $detailWaUrl = "https://wa.me/6281382958012?text=" . urlencode($detailWaMsg);
+                            @endphp
+                            <a href="{{ $detailWaUrl }}" target="_blank" rel="noopener"
                                class="w-full py-space-md px-space-lg bg-primary hover:bg-secondary text-on-primary font-label-lg text-label-lg rounded tracking-widest uppercase transition-all shadow-md flex items-center justify-center gap-space-sm group">
                                 <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">shopping_bag</span>
                                 <span>Pesan via WhatsApp</span>
                             </a>
+                            @endif
                             @else
                             <a href="{{ route('login') }}"
                                class="w-full py-space-md px-space-lg bg-primary text-on-primary font-label-lg text-label-lg rounded tracking-widest uppercase transition-all shadow-md flex items-center justify-center gap-space-sm">

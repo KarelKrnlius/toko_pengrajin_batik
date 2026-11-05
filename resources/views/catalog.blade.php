@@ -154,111 +154,157 @@
     {{-- Main 2-Column --}}
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-start">
 
-        {{-- ══ SIDEBAR FILTER ══ --}}
-        <aside class="lg:col-span-3 flex flex-col gap-space-lg bg-surface-container-low p-space-lg rounded-xl shadow-sm sticky top-24">
+        @php
+            $activeFilterCount = (request('category') ? 1 : 0) + (request('price_min') || (request('price_max') && request('price_max') != 10000000) ? 1 : 0);
+            $hasActiveFilters = $activeFilterCount > 0;
+        @endphp
 
-            <div class="flex items-center justify-between pb-space-sm border-b border-surface-container-highest">
+        {{-- ══ SIDEBAR FILTER (Responsive Dropdown) ══ --}}
+        <aside class="lg:col-span-3 flex flex-col bg-surface-container-low rounded-xl shadow-sm lg:sticky lg:top-24 overflow-hidden border border-outline-variant/30">
+
+            {{-- Filter Header (Bisa diklik buka/tutup pada tampilan mobile/responsive) --}}
+            <div class="flex items-center justify-between p-space-md lg:p-space-lg pb-space-sm lg:pb-space-sm border-b border-surface-container-highest cursor-pointer lg:cursor-default select-none transition-colors hover:bg-surface-container/50 lg:hover:bg-transparent"
+                 onclick="toggleEntireFilter()">
                 <div class="flex items-center gap-space-xs text-primary font-title-lg text-title-lg">
-                    <span class="material-symbols-outlined text-[20px] text-secondary">filter_list</span>
+                    <span class="material-symbols-outlined text-[20px] text-secondary">tune</span>
                     <span>Filter Kurasi</span>
+                    @if($activeFilterCount > 0)
+                        <span class="ml-1 bg-secondary text-on-secondary text-[10px] font-bold px-2 py-0.5 rounded-full lg:hidden">
+                            {{ $activeFilterCount }}
+                        </span>
+                    @endif
                 </div>
-                <a href="{{ route('catalog') }}"
-                   class="text-secondary font-label-sm text-label-sm hover:underline tracking-wider uppercase font-bold">Reset</a>
+                <div class="flex items-center gap-2">
+                    @if(request()->hasAny(['category','price_min','price_max']))
+                        <a href="{{ route('catalog') }}" onclick="event.stopPropagation()"
+                           class="text-secondary font-label-sm text-label-sm hover:underline tracking-wider uppercase font-bold">Reset</a>
+                    @endif
+                    {{-- Toggle arrow untuk responsive / mobile --}}
+                    <div class="lg:hidden w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary transition-transform duration-200 {{ $hasActiveFilters ? 'rotate-180' : '' }}" id="mobileFilterArrow">
+                        <span class="material-symbols-outlined text-[20px]">expand_more</span>
+                    </div>
+                </div>
             </div>
 
-            <form method="GET" action="{{ route('catalog') }}" id="filterForm">
-                @if(request('search')) <input type="hidden" name="search" value="{{ request('search') }}"> @endif
-                @if(request('sort'))   <input type="hidden" name="sort"   value="{{ request('sort') }}"> @endif
+            {{-- Filter Content (Tutup/Buka di mobile, selalu tampil di desktop) --}}
+            <div id="filterContent" class="{{ $hasActiveFilters ? 'flex' : 'hidden' }} lg:flex flex-col gap-space-lg p-space-md lg:p-space-lg pt-space-md lg:pt-0">
 
-                {{-- 1. Kategori Wastra --}}
-                <div class="flex flex-col gap-space-sm mb-space-md">
-                    <div class="flex items-center justify-between">
-                        <span class="font-label-md text-label-md text-primary uppercase tracking-wider font-bold">Kategori Wastra</span>
-                        <span class="font-label-sm text-label-sm text-outline">{{ $categories->count() }} Jenis</span>
+                <form method="GET" action="{{ route('catalog') }}" id="filterForm">
+                    @if(request('search')) <input type="hidden" name="search" value="{{ request('search') }}"> @endif
+                    @if(request('sort'))   <input type="hidden" name="sort"   value="{{ request('sort') }}"> @endif
+
+                    {{-- 1. Kategori Wastra (Dropdown Buka/Tutup) --}}
+                    <div class="flex flex-col mb-space-md bg-surface-container-lowest/80 rounded-xl border border-outline-variant/60 overflow-hidden shadow-xs">
+                        <button type="button" onclick="toggleCategoryDropdown()"
+                                class="w-full flex items-center justify-between p-3 hover:bg-surface-container transition-colors text-left select-none">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="material-symbols-outlined text-[18px] text-secondary">category</span>
+                                <div class="flex flex-col">
+                                    <span class="font-label-md text-label-md text-primary uppercase tracking-wider font-bold">Kategori Wastra</span>
+                                    <span class="text-[11px] text-outline truncate" id="categoryActiveLabel">
+                                        @if(request('category'))
+                                            {{ $categories->firstWhere('id', request('category'))?->name ?? 'Kategori Terpilih' }}
+                                        @else
+                                            Semua Koleksi ({{ $categories->count() }} Jenis)
+                                        @endif
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1.5 flex-shrink-0">
+                                @if(request('category'))
+                                    <span class="w-2 h-2 rounded-full bg-secondary"></span>
+                                @endif
+                                <span class="material-symbols-outlined text-outline text-[20px] transition-transform duration-200 rotate-180" id="categoryDropdownArrow">
+                                    expand_more
+                                </span>
+                            </div>
+                        </button>
+
+                        <div id="categoryDropdownList" class="flex flex-col gap-1 p-2 pt-1 border-t border-outline-variant/30 max-h-60 overflow-y-auto">
+                            <label class="flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-surface-container transition-colors {{ !request('category') ? 'bg-surface-container text-primary font-bold' : '' }}">
+                                <span class="flex items-center gap-space-xs font-label-md text-label-md {{ !request('category') ? 'text-primary font-bold' : 'text-on-surface-variant' }}">
+                                    <input type="radio" name="category" value="" class="accent-secondary w-3.5 h-3.5"
+                                           {{ !request('category') ? 'checked' : '' }} onchange="document.getElementById('filterForm').submit()"/>
+                                    Semua Koleksi
+                                </span>
+                                <span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-bold">{{ $products->total() }}</span>
+                            </label>
+                            @foreach($categories as $cat)
+                            <label class="flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-surface-container transition-colors {{ request('category') == $cat->id ? 'bg-surface-container text-primary font-bold' : '' }}">
+                                <span class="flex items-center gap-space-xs font-label-md text-label-md {{ request('category') == $cat->id ? 'text-primary font-bold' : 'text-on-surface-variant' }}">
+                                    <input type="radio" name="category" value="{{ $cat->id }}" class="accent-secondary w-3.5 h-3.5"
+                                           {{ request('category') == $cat->id ? 'checked' : '' }} onchange="document.getElementById('filterForm').submit()"/>
+                                    {{ $cat->name }}
+                                </span>
+                                <span class="text-outline font-label-sm text-label-sm">{{ $cat->products_count }}</span>
+                            </label>
+                            @endforeach
+                        </div>
                     </div>
-                    <div class="flex flex-col gap-1.5">
-                        <label class="flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-surface-container-lowest transition-colors {{ !request('category') ? 'bg-surface-container-lowest' : '' }}">
-                            <span class="flex items-center gap-space-xs font-label-md text-label-md {{ !request('category') ? 'text-primary font-bold' : 'text-on-surface-variant' }}">
-                                <input type="radio" name="category" value="" class="accent-secondary w-3.5 h-3.5"
-                                       {{ !request('category') ? 'checked' : '' }} onchange="document.getElementById('filterForm').submit()"/>
-                                Semua Koleksi
-                            </span>
-                            <span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-bold">{{ $products->total() }}</span>
-                        </label>
-                        @foreach($categories as $cat)
-                        <label class="flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-surface-container-lowest transition-colors {{ request('category') == $cat->id ? 'bg-surface-container-lowest' : '' }}">
-                            <span class="flex items-center gap-space-xs font-label-md text-label-md {{ request('category') == $cat->id ? 'text-primary font-bold' : 'text-on-surface-variant' }}">
-                                <input type="radio" name="category" value="{{ $cat->id }}" class="accent-secondary w-3.5 h-3.5"
-                                       {{ request('category') == $cat->id ? 'checked' : '' }} onchange="document.getElementById('filterForm').submit()"/>
-                                {{ $cat->name }}
-                            </span>
-                            <span class="text-outline font-label-sm text-label-sm">{{ $cat->products_count }}</span>
-                        </label>
-                        @endforeach
+
+                    {{-- 2. Rentang Harga --}}
+                    <div class="flex flex-col gap-space-sm border-t border-outline-variant/60 pt-space-md mb-space-md">
+                        <span class="font-label-md text-label-md text-primary uppercase tracking-wider font-bold">Rentang Harga</span>
+
+                        {{-- Kotak Min & Max --}}
+                        <div class="grid grid-cols-2 gap-2 mt-1">
+                            <div class="p-2 bg-surface-container-lowest rounded-lg border border-outline-variant overflow-hidden">
+                                <span class="block font-label-sm text-[9px] text-outline uppercase tracking-wider mb-0.5">Min</span>
+                                <span id="displayMin" class="block text-primary font-bold leading-tight"
+                                      style="font-size:clamp(9px,1.8vw,12px); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                    Rp {{ number_format(request('price_min', 0), 0, ',', '.') }}
+                                </span>
+                            </div>
+                            <div class="p-2 bg-surface-container-lowest rounded-lg border border-outline-variant overflow-hidden">
+                                <span class="block font-label-sm text-[9px] text-outline uppercase tracking-wider mb-0.5">Maks</span>
+                                <span id="displayMax" class="block text-primary font-bold leading-tight"
+                                      style="font-size:clamp(9px,1.8vw,12px); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                    Rp {{ number_format(request('price_max', 10000000), 0, ',', '.') }}
+                                </span>
+                            </div>
+                        </div>
+
+                        {{-- Double Slider --}}
+                        <div class="relative mt-3 mb-1 px-1">
+                            <div class="relative h-1.5 rounded-full bg-outline-variant">
+                                <div id="rangeHighlight" class="absolute h-full rounded-full" style="background:#904c2e;"></div>
+                            </div>
+                            <div class="flex justify-between mt-1">
+                                <span style="font-size:9px;" class="text-outline font-label-sm">Rp 0</span>
+                                <span style="font-size:9px;" class="text-outline font-label-sm">Rp 10.000.000</span>
+                            </div>
+                            <input type="range" name="price_min" id="rangeMin"
+                                   min="0" max="10000000" step="100000"
+                                   value="{{ request('price_min', 0) }}"
+                                   class="range-slider absolute w-full"
+                                   style="top:-14px;"
+                                   oninput="syncRange()"/>
+                            <input type="range" name="price_max" id="rangeMax"
+                                   min="0" max="10000000" step="100000"
+                                   value="{{ request('price_max', 10000000) }}"
+                                   class="range-slider absolute w-full"
+                                   style="top:-14px;"
+                                   oninput="syncRange()"/>
+                        </div>
+
+                        <button type="submit"
+                                class="w-full py-2 mt-2 bg-primary hover:bg-secondary text-on-primary font-label-lg text-label-lg rounded-lg transition-colors flex items-center justify-center gap-1 text-xs shadow-sm">
+                            <span class="material-symbols-outlined text-[16px]">done_all</span>
+                            Terapkan Harga
+                        </button>
+                    </div>
+
+                </form>
+
+                {{-- 3. Sertifikat Otentisitas --}}
+                <div class="p-space-md bg-surface-container rounded-lg flex items-start gap-space-sm border-t border-outline-variant pt-space-md">
+                    <span class="material-symbols-outlined text-secondary text-[24px] flex-shrink-0">verified</span>
+                    <div class="flex flex-col gap-0.5">
+                        <span class="font-label-md text-label-md text-primary font-bold">Sertifikat Otentisitas</span>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant leading-snug">Setiap helai kain dilengkapi sertifikat fisik bernomor registrasi pembatik.</p>
                     </div>
                 </div>
 
-                {{-- 2. Rentang Harga --}}
-                <div class="flex flex-col gap-space-sm border-t border-outline-variant pt-space-md mb-space-md">
-                    <span class="font-label-md text-label-md text-primary uppercase tracking-wider font-bold">Rentang Harga</span>
-
-                    {{-- Kotak Min & Max --}}
-                    <div class="grid grid-cols-2 gap-2 mt-1">
-                        <div class="p-2 bg-surface-container-lowest rounded-lg border border-outline-variant overflow-hidden">
-                            <span class="block font-label-sm text-[9px] text-outline uppercase tracking-wider mb-0.5">Min</span>
-                            <span id="displayMin" class="block text-primary font-bold leading-tight"
-                                  style="font-size:clamp(9px,1.8vw,12px); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                Rp {{ number_format(request('price_min', 0), 0, ',', '.') }}
-                            </span>
-                        </div>
-                        <div class="p-2 bg-surface-container-lowest rounded-lg border border-outline-variant overflow-hidden">
-                            <span class="block font-label-sm text-[9px] text-outline uppercase tracking-wider mb-0.5">Maks</span>
-                            <span id="displayMax" class="block text-primary font-bold leading-tight"
-                                  style="font-size:clamp(9px,1.8vw,12px); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                Rp {{ number_format(request('price_max', 10000000), 0, ',', '.') }}
-                            </span>
-                        </div>
-                    </div>
-
-                    {{-- Double Slider --}}
-                    <div class="relative mt-3 mb-1 px-1">
-                        <div class="relative h-1.5 rounded-full bg-outline-variant">
-                            <div id="rangeHighlight" class="absolute h-full rounded-full" style="background:#904c2e;"></div>
-                        </div>
-                        <div class="flex justify-between mt-1">
-                            <span style="font-size:9px;" class="text-outline font-label-sm">Rp 0</span>
-                            <span style="font-size:9px;" class="text-outline font-label-sm">Rp 10.000.000</span>
-                        </div>
-                        <input type="range" name="price_min" id="rangeMin"
-                               min="0" max="10000000" step="100000"
-                               value="{{ request('price_min', 0) }}"
-                               class="range-slider absolute w-full"
-                               style="top:-14px;"
-                               oninput="syncRange()"/>
-                        <input type="range" name="price_max" id="rangeMax"
-                               min="0" max="10000000" step="100000"
-                               value="{{ request('price_max', 10000000) }}"
-                               class="range-slider absolute w-full"
-                               style="top:-14px;"
-                               oninput="syncRange()"/>
-                    </div>
-
-                    <button type="submit"
-                            class="w-full py-2 mt-2 bg-primary hover:bg-secondary text-on-primary font-label-lg text-label-lg rounded-lg transition-colors flex items-center justify-center gap-1 text-xs shadow-sm">
-                        <span class="material-symbols-outlined text-[16px]">done_all</span>
-                        Terapkan Harga
-                    </button>
-                </div>
-
-            </form>
-
-            {{-- 3. Sertifikat Otentisitas --}}
-            <div class="p-space-md bg-surface-container rounded-lg flex items-start gap-space-sm border-t border-outline-variant pt-space-md">
-                <span class="material-symbols-outlined text-secondary text-[24px] flex-shrink-0">verified</span>
-                <div class="flex flex-col gap-0.5">
-                    <span class="font-label-md text-label-md text-primary font-bold">Sertifikat Otentisitas</span>
-                    <p class="font-body-sm text-body-sm text-on-surface-variant leading-snug">Setiap helai kain dilengkapi sertifikat fisik bernomor registrasi pembatik.</p>
-                </div>
             </div>
         </aside>
 
@@ -337,12 +383,31 @@
                                     Detail
                                 </a>
                                 @auth
-                                    <a href="https://wa.me/6281382958012?text={{ urlencode('Halo, saya ingin memesan: ' . $product->name) }}"
-                                       target="_blank" rel="noopener"
-                                       class="py-1.5 rounded-lg bg-primary hover:bg-secondary text-on-primary shadow-sm transition-colors flex items-center justify-center gap-1 text-[11px] font-semibold">
-                                        <span class="material-symbols-outlined text-[13px]">shopping_bag</span>
-                                        <span>Beli</span>
-                                    </a>
+                                    @if(Auth::user()->isProfileComplete())
+                                        @php
+                                            $catWaMsg = "Halo Juragan Batik, saya ingin memesan produk berikut:\n\n"
+                                                . "• Produk: " . $product->name . "\n"
+                                                . "• Harga: Rp " . number_format($product->price, 0, ',', '.') . "\n\n"
+                                                . "Data Pemesan:\n"
+                                                . "• Nama: " . Auth::user()->name . "\n"
+                                                . "• Email: " . Auth::user()->email . "\n"
+                                                . "• No. Telepon: " . Auth::user()->phone . "\n"
+                                                . "• Alamat Pengiriman: " . Auth::user()->address;
+                                            $catWaUrl = "https://wa.me/6281382958012?text=" . urlencode($catWaMsg);
+                                        @endphp
+                                        <a href="{{ $catWaUrl }}" target="_blank" rel="noopener"
+                                           class="py-1.5 rounded-lg bg-primary hover:bg-secondary text-on-primary shadow-sm transition-colors flex items-center justify-center gap-1 text-[11px] font-semibold">
+                                            <span class="material-symbols-outlined text-[13px]">shopping_bag</span>
+                                            <span>Beli</span>
+                                        </a>
+                                    @else
+                                        <a href="{{ route('profile.show') }}"
+                                           class="py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white shadow-sm transition-colors flex items-center justify-center gap-1 text-[11px] font-semibold"
+                                           title="Lengkapi profil untuk membeli">
+                                            <span class="material-symbols-outlined text-[13px]">badge</span>
+                                            <span>Lengkapi</span>
+                                        </a>
+                                    @endif
                                 @else
                                     <a href="{{ route('login') }}"
                                        class="py-1.5 rounded-lg bg-primary text-on-primary shadow-sm transition-colors flex items-center justify-center gap-1 text-[11px] font-semibold">
@@ -432,6 +497,33 @@ function syncRange() {
     const pctMax = (maxVal / MAX_PRICE) * 100;
     highlight.style.left  = pctMin + '%';
     highlight.style.width = (pctMax - pctMin) + '%';
+}
+
+function toggleCategoryDropdown() {
+    const list = document.getElementById('categoryDropdownList');
+    const arrow = document.getElementById('categoryDropdownArrow');
+    if (!list || !arrow) return;
+    const isHidden = list.classList.toggle('hidden');
+    if (isHidden) {
+        arrow.classList.remove('rotate-180');
+    } else {
+        arrow.classList.add('rotate-180');
+    }
+}
+
+function toggleEntireFilter() {
+    if (window.innerWidth >= 1024) return; // Pada desktop sticky sidebar selalu terbuka
+    const content = document.getElementById('filterContent');
+    const arrow = document.getElementById('mobileFilterArrow');
+    if (!content || !arrow) return;
+    const isHidden = content.classList.toggle('hidden');
+    if (isHidden) {
+        content.classList.remove('flex');
+        arrow.classList.remove('rotate-180');
+    } else {
+        content.classList.add('flex');
+        arrow.classList.add('rotate-180');
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function () {

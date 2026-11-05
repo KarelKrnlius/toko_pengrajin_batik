@@ -70,17 +70,18 @@
                     <span class="block text-[11px] font-bold text-primary whitespace-nowrap mb-1">
                         Rp {{ number_format($product->price, 0, ',', '.') }}
                     </span>
-                    <div class="grid grid-cols-2 gap-1">
+                    <div class="grid grid-cols-2 gap-1.5 mt-2">
                         <a href="{{ route('product.show', $product->id) }}"
-                           class="block py-1 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary text-center text-[10px] font-bold transition-colors">
+                           class="w-full h-7 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary flex items-center justify-center text-[10px] sm:text-[11px] font-bold transition-colors">
                             Detail
                         </a>
                         @auth
-                        <form action="{{ route('cart.store', $product->id) }}" method="POST">
+                        <form action="{{ route('cart.store', $product->id) }}" method="POST" class="w-full m-0 p-0 flex">
                             @csrf
                             <button type="submit"
-                                    class="w-full py-1 rounded-lg bg-primary hover:bg-secondary text-on-primary text-[10px] font-bold transition-colors flex items-center justify-center gap-0.5">
-                                <span class="material-symbols-outlined text-[12px]">add</span>Keranjang
+                                    class="w-full h-7 rounded-lg bg-primary hover:bg-secondary text-on-primary flex items-center justify-center gap-1 text-[10px] sm:text-[11px] font-bold transition-colors shadow-sm">
+                                <span class="material-symbols-outlined text-[13px] leading-none">add_shopping_cart</span>
+                                <span class="truncate">Keranjang</span>
                             </button>
                         </form>
                         @endauth

@@ -16,9 +16,49 @@
     </div>
 
     @if(session('success'))
-    <div class="mb-4 flex items-center gap-2 p-3 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm">
-        <span class="material-symbols-outlined text-[20px]" style="color:#386a20">check_circle</span>
-        <p class="text-sm text-on-surface flex-1">{{ session('success') }}</p>
+    <div class="mb-6 p-4 sm:p-5 bg-emerald-50 border border-emerald-200 rounded-2xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex items-start sm:items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0 text-emerald-600">
+                <span class="material-symbols-outlined text-[24px]">check_circle</span>
+            </div>
+            <div>
+                <h3 class="text-sm font-bold text-emerald-900">Pesanan Berhasil Diproses!</h3>
+                <p class="text-xs text-emerald-700 mt-0.5">{{ session('success') }}</p>
+            </div>
+        </div>
+        @if(session('whatsapp_url'))
+        <a href="{{ session('whatsapp_url') }}" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow transition-all hover:scale-105 flex-shrink-0">
+            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Buka WhatsApp
+        </a>
+        @endif
+    </div>
+    @endif
+
+    @if(session('warning'))
+    <div class="mb-6 p-4 sm:p-5 bg-amber-50 border border-amber-200 rounded-2xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-amber-900">
+        <div class="flex items-start sm:items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0 text-amber-600">
+                <span class="material-symbols-outlined text-[24px]">warning</span>
+            </div>
+            <div>
+                <h3 class="text-sm font-bold text-amber-900">Profil Belum Lengkap</h3>
+                <p class="text-xs text-amber-700 mt-0.5">{{ session('warning') }}</p>
+            </div>
+        </div>
+        <a href="{{ route('profile.show') }}"
+           class="inline-flex items-center gap-1.5 px-4 py-2 bg-secondary hover:bg-primary text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow transition-colors flex-shrink-0">
+            <span class="material-symbols-outlined text-[16px]">edit</span>
+            Lengkapi Profil Sekarang
+        </a>
+    </div>
+    @endif
+
+    @if(session('error'))
+    <div class="mb-4 flex items-center gap-2 p-3 bg-error-container rounded-xl text-on-surface">
+        <span class="material-symbols-outlined text-[20px] text-error">error</span>
+        <p class="text-sm flex-1">{{ session('error') }}</p>
     </div>
     @endif
 
@@ -121,13 +161,29 @@
                     </div>
                 </div>
 
-                <form action="{{ route('cart.checkout') }}" method="POST">
+                @if(!Auth::user()->isProfileComplete())
+                <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs flex flex-col gap-1.5">
+                    <div class="flex items-center gap-1.5 font-bold">
+                        <span class="material-symbols-outlined text-[16px] text-amber-600">info</span>
+                        <span>Lengkapi Profil Pengiriman</span>
+                    </div>
+                    <p class="text-[11px] text-amber-700 leading-normal">
+                        Nomor telepon dan alamat rumah Anda belum lengkap. Silakan lengkapi profil sebelum checkout pesanan.
+                    </p>
+                    <a href="{{ route('profile.show') }}" class="text-secondary hover:text-primary font-bold underline text-[11px]">
+                        Lengkapi Sekarang →
+                    </a>
+                </div>
+                @endif
+
+                <form action="{{ route('cart.checkout') }}" method="POST" id="checkoutForm">
                     @csrf
                     <button type="submit"
-                            class="w-full py-3 text-on-secondary font-bold text-sm tracking-wider uppercase rounded-lg shadow-md transition-all hover:opacity-90 flex items-center justify-center gap-2"
-                            style="background:#25d366;">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                        Checkout via WhatsApp
+                            id="checkoutBtn"
+                            class="w-full py-4 px-6 text-white font-bold text-sm tracking-wider uppercase rounded-xl shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-3 cursor-pointer"
+                            style="background-color: #25D366;">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 flex-shrink-0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                        <span>Checkout via WhatsApp</span>
                     </button>
                 </form>
 
@@ -141,4 +197,34 @@
 
     @endif
 </div>
+
+<script>
+    document.getElementById('checkoutForm')?.addEventListener('submit', function () {
+        const btn = document.getElementById('checkoutBtn');
+        if (btn) {
+            btn.disabled = true;
+            btn.classList.add('opacity-80', 'cursor-wait');
+            btn.innerHTML = `
+                <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span>Memproses Checkout...</span>
+            `;
+        }
+    });
+
+    @if(session('whatsapp_url'))
+    (function () {
+        const waUrl = @json(session('whatsapp_url'));
+        const waKey = 'wa_opened_' + @json(md5(session('whatsapp_url')));
+
+        // Pastikan hanya dibuka 1 kali saja dan tidak berulang saat tombol Back ditekan
+        if (waUrl && !sessionStorage.getItem(waKey)) {
+            sessionStorage.setItem(waKey, 'true');
+            window.open(waUrl, '_blank');
+        }
+    })();
+    @endif
+</script>
 @endsection

@@ -70,10 +70,18 @@ class CartController extends Controller
     /** Checkout via WhatsApp */
     public function checkout()
     {
-        $carts = Cart::with('product')->where('user_id', Auth::id())->get();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if (!$user->isProfileComplete()) {
+            return redirect()->route('profile.show')
+                ->with('warning', 'Mohon lengkapi data profil Anda terlebih dahulu (nomor telepon dan alamat pengiriman) sebelum melakukan checkout pesanan.');
+        }
+
+        $carts = Cart::with('product')->where('user_id', $user->id)->get();
 
         if ($carts->isEmpty()) {
-            return back()->with('error', 'Keranjang masih kosong.');
+            return redirect()->route('cart.index')->with('error', 'Keranjang belanja Anda masih kosong.');
         }
 
         $message = "Halo Juragan Batik, saya ingin memesan:\n\n";
@@ -85,12 +93,55 @@ class CartController extends Controller
             $message .= "• {$cart->product->name} ({$cart->quantity}x) - Rp " . number_format($subtotal, 0, ',', '.') . "\n";
         }
 
-        $message .= "\nTotal: Rp " . number_format($total, 0, ',', '.');
-        $message .= "\n\nAtas nama: " . Auth::user()->name;
+        $message .= "\nTotal: Rp " . number_format($total, 0, ',', '.') . "\n\n";
+        $message .= "Data Pemesan:\n";
+        $message .= "• Nama: " . $user->name . "\n";
+        $message .= "• Email: " . $user->email . "\n";
+        $message .= "• No. Telepon: " . $user->phone . "\n";
+        $message .= "• Alamat Pengiriman: " . $user->address;
 
         // Kosongkan keranjang
-        Cart::where('user_id', Auth::id())->delete();
+        Cart::where('user_id', $user->id)->delete();
 
-        return redirect("https://wa.me/6281382958012?text=" . urlencode($message));
+        $whatsappUrl = "https://wa.me/6281382958012?text=" . urlencode($message);
+
+        return redirect()->route('cart.index')
+            ->with('success', 'Checkout berhasil! Pesanan Anda telah dicatat dan keranjang belanja telah dikosongkan. Menghubungkan ke WhatsApp...')
+            ->with('whatsapp_url', $whatsappUrl);
+    }
+
+    /** Beli langsung produk via WhatsApp */
+    public function buyDirect($productId)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if (!$user->isProfileComplete()) {
+            return redirect()->route('profile.show')
+                ->with('warning', 'Mohon lengkapi data profil Anda terlebih dahulu (nomor telepon dan alamat pengiriman) sebelum melakukan pembelian.');
+        }
+
+        $product = Product::with('category')->findOrFail($productId);
+
+        if ($product->stock <= 0) {
+            return back()->with('error', 'Produk ini sedang habis.');
+        }
+
+        $message = "Halo Juragan Batik, saya ingin memesan produk berikut:\n\n";
+        $message .= "• Produk: " . $product->name . "\n";
+        if ($product->category) {
+            $message .= "• Kategori: " . $product->category->name . "\n";
+        }
+        $message .= "• Harga: Rp " . number_format($product->price, 0, ',', '.') . "\n";
+        $message .= "• Jumlah: 1 pcs\n\n";
+        $message .= "Data Pemesan:\n";
+        $message .= "• Nama: " . $user->name . "\n";
+        $message .= "• Email: " . $user->email . "\n";
+        $message .= "• No. Telepon: " . $user->phone . "\n";
+        $message .= "• Alamat Pengiriman: " . $user->address;
+
+        $whatsappUrl = "https://wa.me/6281382958012?text=" . urlencode($message);
+
+        return redirect($whatsappUrl);
     }
 }

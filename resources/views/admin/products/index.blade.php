@@ -97,22 +97,29 @@
                 &bull; Total <span class="font-semibold">{{ $products->total() }}</span> produk
             </p>
         </div>
-        <div class="flex items-center gap-space-md flex-shrink-0">
-            <button onclick="document.getElementById('modalTambah').classList.remove('hidden')"
-                    class="inline-flex items-center gap-space-xs px-space-lg py-space-sm bg-surface-container-lowest hover:bg-surface text-primary font-label-lg text-label-lg rounded shadow-sm transition-colors">
-                <span class="material-symbols-outlined text-[20px] text-secondary">add_circle</span>
-                <span>Tambah Produk</span>
+        <div class="flex items-center gap-space-sm flex-shrink-0">
+            <button type="button"
+                    onclick="document.getElementById('modalKategori').classList.remove('hidden'); loadCategories()"
+                    class="inline-flex items-center justify-center gap-space-xs px-space-md bg-on-primary/10 hover:bg-on-primary/20 text-on-primary font-label-lg text-label-lg rounded transition-colors h-10 shadow-none">
+                <span class="material-symbols-outlined text-[20px]">category</span>
+                <span class="hidden sm:inline">Kategori</span>
             </button>
-            <form action="{{ route('logout') }}" method="POST">
+            <button type="button"
+                    onclick="document.getElementById('modalTambah').classList.remove('hidden')"
+                    class="inline-flex items-center justify-center gap-space-xs px-space-md bg-surface-container-lowest hover:bg-surface text-primary font-label-lg text-label-lg rounded shadow-sm transition-colors h-10">
+                <span class="material-symbols-outlined text-[20px] text-secondary">add_circle</span>
+                <span class="hidden sm:inline">Tambah Produk</span>
+            </button>
+            <form action="{{ route('logout') }}" method="POST" class="inline-flex items-center m-0 p-0">
                 @csrf
                 <button type="submit"
-                        class="inline-flex items-center gap-space-xs px-space-lg py-space-sm bg-on-primary/10 hover:bg-on-primary/20 text-on-primary font-label-lg text-label-lg rounded transition-colors">
-                    <span class="material-symbols-outlined text-[18px]">logout</span>
-                    <span>Keluar</span>
+                        class="inline-flex items-center justify-center gap-space-xs px-space-md bg-on-primary/10 hover:bg-on-primary/20 text-on-primary font-label-lg text-label-lg rounded transition-colors h-10 shadow-none">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                    <span class="hidden sm:inline">Keluar</span>
                 </button>
             </form>
         </div>
-    </div>
+    </div>  
 </div>
 
 <div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin py-space-xl">
@@ -416,6 +423,68 @@
 
 {{-- ══ Toast Container ══ --}}
 <div id="toast-container"></div>
+
+{{-- ══════════ MODAL KATEGORI ══════════ --}}
+<div id="modalKategori" class="hidden fixed inset-0 z-50 flex items-center justify-center p-space-md bg-primary-container/40 backdrop-blur-sm">
+    <div class="bg-surface-container-lowest w-full max-w-lg rounded-xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+        {{-- Header --}}
+        <div class="bg-primary px-space-lg py-space-md flex items-center justify-between flex-shrink-0">
+            <h3 class="font-headline-sm text-headline-sm text-on-primary flex items-center gap-space-xs">
+                <span class="material-symbols-outlined text-[22px]">category</span>
+                Manajemen Kategori
+            </h3>
+            <button onclick="document.getElementById('modalKategori').classList.add('hidden')"
+                    class="text-on-primary/70 hover:text-on-primary transition-colors">
+                <span class="material-symbols-outlined text-[24px]">close</span>
+            </button>
+        </div>
+
+        {{-- Body --}}
+        <div class="flex flex-col flex-1 overflow-hidden">
+
+            {{-- Tambah Kategori --}}
+            <div class="px-space-lg pt-space-md pb-space-sm border-b border-outline-variant">
+                <form id="formTambahKategori" onsubmit="submitCategory(event)" class="flex gap-space-sm">
+                    <input type="text" id="inputNamaKategori" placeholder="Nama kategori baru..."
+                           class="flex-1 px-space-md py-2.5 bg-surface-container-low rounded-lg text-sm text-on-surface border border-outline-variant focus:outline-none focus:ring-2 focus:ring-secondary" required />
+                    <button type="submit" id="btnTambahKategori"
+                            class="inline-flex items-center gap-1 px-space-md py-2.5 bg-primary hover:bg-secondary text-on-primary text-sm font-bold rounded-lg transition-colors shadow-sm flex-shrink-0">
+                        <span class="material-symbols-outlined text-[18px]">add</span>
+                        <span class="hidden sm:inline">Tambah</span>
+                    </button>
+                </form>
+                <p id="kategoriError" class="hidden text-error text-xs mt-1.5 font-medium"></p>
+            </div>
+
+            {{-- Sort --}}
+            <div class="px-space-lg py-space-sm border-b border-outline-variant flex items-center justify-between gap-space-sm flex-shrink-0">
+                <span class="text-xs text-on-surface-variant font-semibold whitespace-nowrap" id="kategoriInfo">0 kategori</span>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-outline text-[16px] pointer-events-none">sort</span>
+                    <select id="kategoriSort" onchange="loadCategories()"
+                            class="pl-8 pr-7 py-1.5 bg-surface-container-low border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary appearance-none cursor-pointer">
+                        <option value="terbaru">Terbaru</option>
+                        <option value="terlama">Terlama</option>
+                        <option value="a-z">A – Z</option>
+                        <option value="z-a">Z – A</option>
+                    </select>
+                    <span class="material-symbols-outlined absolute right-1.5 top-1/2 -translate-y-1/2 text-outline text-[14px] pointer-events-none">expand_more</span>
+                </div>
+            </div>
+
+            {{-- List --}}
+            <div id="kategoriList" class="flex-1 overflow-y-auto px-space-lg py-space-sm">
+                <div class="flex items-center justify-center py-8 text-outline">
+                    <span class="material-symbols-outlined text-[28px] animate-spin">progress_activity</span>
+                </div>
+            </div>
+
+            {{-- Pagination --}}
+            <div id="kategoriPagination" class="hidden px-space-lg py-space-sm border-t border-outline-variant flex-shrink-0">
+            </div>
+        </div>
+    </div>
+</div>
 
 {{-- ══════════ MODAL TAMBAH ══════════ --}}
 <div id="modalTambah" class="hidden fixed inset-0 z-50 flex items-center justify-center p-space-md bg-primary-container/40 backdrop-blur-sm">
@@ -964,7 +1033,7 @@ document.getElementById('formEdit')?.addEventListener('submit', function() {
 });
 
 // ── Close modal on backdrop click ────────────────────────────
-['modalTambah', 'modalEdit'].forEach(function(id) {
+['modalTambah', 'modalEdit', 'modalKategori'].forEach(function(id) {
     document.getElementById(id).addEventListener('click', function(e) {
         if (e.target === this) this.classList.add('hidden');
     });
@@ -976,6 +1045,209 @@ document.querySelectorAll('select[name="sort"], select[name="category"]').forEac
         this.closest('form').submit();
     });
 });
+
+// ══ Kategori Modal (AJAX) ═══════════════════════════════════
+let kategoriCurrentPage = 1;
+
+function loadCategories(page) {
+    if (page !== undefined) {
+        kategoriCurrentPage = page;
+    }
+    const sort     = document.getElementById('kategoriSort').value;
+    const listEl   = document.getElementById('kategoriList');
+    const pagEl    = document.getElementById('kategoriPagination');
+    const infoEl   = document.getElementById('kategoriInfo');
+
+    listEl.innerHTML = '<div class="flex items-center justify-center py-8 text-outline"><span class="material-symbols-outlined text-[28px] animate-spin">progress_activity</span></div>';
+
+    fetch(`{{ route('admin.categories.index') }}?sort=${sort}&page=${kategoriCurrentPage}`, {
+        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        infoEl.textContent = data.total + ' kategori';
+
+        if (data.data.length === 0) {
+            listEl.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-8 text-outline gap-2">
+                    <span class="material-symbols-outlined text-[48px]">folder_open</span>
+                    <span class="text-sm font-medium">Belum ada kategori</span>
+                </div>`;
+            pagEl.classList.add('hidden');
+            return;
+        }
+
+        let html = '<div class="flex flex-col gap-1.5">';
+        data.data.forEach(function(cat, index) {
+            const num = (data.current_page - 1) * data.per_page + index + 1;
+            const createdDate = new Date(cat.created_at).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
+            html += `
+                <div class="flex items-center gap-space-sm px-space-sm py-2.5 rounded-lg hover:bg-surface-container-low transition-colors group" id="kat-row-${cat.id}">
+                    <span class="w-7 h-7 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center text-xs font-bold flex-shrink-0">${num}</span>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-on-surface truncate">${escapeHtml(cat.name)}</p>
+                        <p class="text-[10px] text-outline">${createdDate}</p>
+                    </div>
+                    <button type="button" onclick="deleteCategory(${cat.id}, '${escapeHtml(cat.name)}')"
+                            class="w-8 h-8 rounded-lg bg-surface-container hover:bg-error hover:text-on-error text-error flex items-center justify-center transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100 sm:opacity-100"
+                            title="Hapus Kategori">
+                        <span class="material-symbols-outlined text-[16px]">delete</span>
+                    </button>
+                </div>`;
+        });
+        html += '</div>';
+        listEl.innerHTML = html;
+
+        // Pagination
+        if (data.last_page > 1) {
+            pagEl.classList.remove('hidden');
+            let pagHtml = '<div class="flex items-center justify-center gap-1 flex-wrap">';
+
+            // Prev
+            if (data.current_page > 1) {
+                pagHtml += `<button onclick="loadCategories(${data.current_page - 1})" class="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-container hover:bg-primary hover:text-on-primary text-primary transition-colors text-xs"><span class="material-symbols-outlined text-[16px]">chevron_left</span></button>`;
+            }
+
+            // Pages
+            for (let p = 1; p <= data.last_page; p++) {
+                if (p === data.current_page) {
+                    pagHtml += `<span class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-on-primary text-xs font-bold shadow-sm">${p}</span>`;
+                } else {
+                    pagHtml += `<button onclick="loadCategories(${p})" class="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-container hover:bg-primary hover:text-on-primary text-primary text-xs font-bold transition-colors">${p}</button>`;
+                }
+            }
+
+            // Next
+            if (data.current_page < data.last_page) {
+                pagHtml += `<button onclick="loadCategories(${data.current_page + 1})" class="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-container hover:bg-primary hover:text-on-primary text-primary transition-colors text-xs"><span class="material-symbols-outlined text-[16px]">chevron_right</span></button>`;
+            }
+
+            pagHtml += '</div>';
+            pagEl.innerHTML = pagHtml;
+        } else {
+            pagEl.classList.add('hidden');
+        }
+    })
+    .catch(err => {
+        listEl.innerHTML = '<div class="flex flex-col items-center justify-center py-8 text-error gap-2"><span class="material-symbols-outlined text-[36px]">error</span><span class="text-sm">Gagal memuat data</span></div>';
+        console.error(err);
+    });
+}
+
+function submitCategory(e) {
+    e.preventDefault();
+    const input   = document.getElementById('inputNamaKategori');
+    const errEl   = document.getElementById('kategoriError');
+    const btn     = document.getElementById('btnTambahKategori');
+    const name    = input.value.trim();
+
+    if (!name) { return; }
+
+    errEl.classList.add('hidden');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>';
+
+    fetch(`{{ route('admin.categories.store') }}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ name: name })
+    })
+    .then(r => r.json().then(d => ({ ok: r.ok, data: d })))
+    .then(({ ok, data }) => {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">add</span><span class="hidden sm:inline">Tambah</span>';
+
+        if (!ok) {
+            const msg = data.errors?.name?.[0] || data.message || 'Gagal menambahkan kategori.';
+            errEl.textContent = msg;
+            errEl.classList.remove('hidden');
+            return;
+        }
+
+        input.value = '';
+        showToast(data.message, 'success');
+        kategoriCurrentPage = 1;
+        loadCategories();
+
+        // Juga refresh dropdown kategori di form produk
+        refreshCategoryDropdowns(data.category);
+    })
+    .catch(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">add</span><span class="hidden sm:inline">Tambah</span>';
+        errEl.textContent = 'Terjadi kesalahan jaringan.';
+        errEl.classList.remove('hidden');
+    });
+}
+
+function deleteCategory(id, name) {
+    if (!confirm('Hapus kategori "' + name + '"?')) { return; }
+
+    const row = document.getElementById('kat-row-' + id);
+    if (row) {
+        row.style.opacity = '0.5';
+        row.style.pointerEvents = 'none';
+    }
+
+    fetch(`{{ url('admin/categories') }}/${id}`, {
+        method: 'DELETE',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(r => r.json().then(d => ({ ok: r.ok, data: d })))
+    .then(({ ok, data }) => {
+        if (!ok) {
+            if (row) { row.style.opacity = '1'; row.style.pointerEvents = ''; }
+            showToast(data.message || 'Gagal menghapus kategori.', 'error');
+            return;
+        }
+        showToast(data.message, 'success');
+        loadCategories();
+
+        // Hapus dari dropdown kategori di form produk
+        removeCategoryFromDropdowns(id);
+    })
+    .catch(() => {
+        if (row) { row.style.opacity = '1'; row.style.pointerEvents = ''; }
+        showToast('Terjadi kesalahan jaringan.', 'error');
+    });
+}
+
+function refreshCategoryDropdowns(cat) {
+    const selects = document.querySelectorAll('select[name="category_id"], select[name="category"]');
+    selects.forEach(sel => {
+        // Cek apakah sudah ada
+        const existing = sel.querySelector(`option[value="${cat.id}"]`);
+        if (!existing) {
+            const opt = document.createElement('option');
+            opt.value = cat.id;
+            opt.textContent = cat.name;
+            sel.appendChild(opt);
+        }
+    });
+}
+
+function removeCategoryFromDropdowns(id) {
+    const selects = document.querySelectorAll('select[name="category_id"], select[name="category"]');
+    selects.forEach(sel => {
+        const opt = sel.querySelector(`option[value="${id}"]`);
+        if (opt) { opt.remove(); }
+    });
+}
+
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
 </script>
 @endpush
 
