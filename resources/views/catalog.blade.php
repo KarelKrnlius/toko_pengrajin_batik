@@ -189,7 +189,7 @@
                     @if(request('search')) <input type="hidden" name="search" value="{{ request('search') }}"> @endif
                     @if(request('sort'))   <input type="hidden" name="sort"   value="{{ request('sort') }}"> @endif
 
-                    {{-- 1. Kategori Wastra (Dropdown Buka/Tutup) --}}
+                    {{-- 1. Kategori Wastra (Dropdown Buka/Tutup, default tertutup) --}}
                     <div class="flex flex-col mb-space-md bg-surface-container-lowest/80 rounded-xl border border-outline-variant/60 overflow-hidden shadow-xs">
                         <button type="button" onclick="toggleCategoryDropdown()"
                                 class="w-full flex items-center justify-between p-3 hover:bg-surface-container transition-colors text-left select-none">
@@ -210,31 +210,51 @@
                                 @if(request('category'))
                                     <span class="w-2 h-2 rounded-full bg-secondary"></span>
                                 @endif
-                                <span class="material-symbols-outlined text-outline text-[20px] transition-transform duration-200 rotate-180" id="categoryDropdownArrow">
+                                {{-- Arrow: rotate-180 = terbuka, default = tertutup --}}
+                                <span class="material-symbols-outlined text-outline text-[20px] transition-transform duration-200 {{ request('category') ? 'rotate-180' : '' }}" id="categoryDropdownArrow">
                                     expand_more
                                 </span>
                             </div>
                         </button>
 
-                        <div id="categoryDropdownList" class="flex flex-col gap-1 p-2 pt-1 pr-1.5 border-t border-outline-variant/30 max-h-60 overflow-y-auto">
-                            <label class="flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-surface-container transition-colors {{ !request('category') ? 'bg-surface-container text-primary font-bold' : '' }}">
-                                <span class="flex items-center gap-space-xs font-label-md text-label-md {{ !request('category') ? 'text-primary font-bold' : 'text-on-surface-variant' }}">
-                                    <input type="radio" name="category" value="" class="accent-secondary w-3.5 h-3.5"
-                                           {{ !request('category') ? 'checked' : '' }} onchange="document.getElementById('filterForm').submit()"/>
-                                    Semua Koleksi
-                                </span>
-                                <span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-bold">{{ $products->total() }}</span>
-                            </label>
-                            @foreach($categories as $cat)
-                            <label class="flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-surface-container transition-colors {{ request('category') == $cat->id ? 'bg-surface-container text-primary font-bold' : '' }}">
-                                <span class="flex items-center gap-space-xs font-label-md text-label-md {{ request('category') == $cat->id ? 'text-primary font-bold' : 'text-on-surface-variant' }}">
-                                    <input type="radio" name="category" value="{{ $cat->id }}" class="accent-secondary w-3.5 h-3.5"
-                                           {{ request('category') == $cat->id ? 'checked' : '' }} onchange="document.getElementById('filterForm').submit()"/>
-                                    {{ $cat->name }}
-                                </span>
-                                <span class="text-outline font-label-sm text-label-sm">{{ $cat->products_count }}</span>
-                            </label>
-                            @endforeach
+                        {{-- Dropdown list: terbuka otomatis jika ada filter aktif --}}
+                        <div id="categoryDropdownList" class="{{ request('category') ? 'flex' : 'hidden' }} flex-col border-t border-outline-variant/30">
+                            {{-- Search box kategori --}}
+                            <div class="px-2 pt-2 pb-1">
+                                <div class="relative">
+                                    <span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-[16px] text-outline pointer-events-none">search</span>
+                                    <input type="text" id="categorySearchInput"
+                                           placeholder="Cari kategori…"
+                                           autocomplete="off"
+                                           oninput="filterCategories(this.value)"
+                                           class="w-full pl-7 pr-2 py-1.5 text-[12px] rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface placeholder-outline focus:outline-none focus:border-secondary transition-colors"/>
+                                </div>
+                            </div>
+                            {{-- List kategori --}}
+                            <div class="flex flex-col gap-0.5 px-2 pb-2 pr-1.5 max-h-56 overflow-y-auto" id="categoryList">
+                                <label class="cat-item flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-surface-container transition-colors {{ !request('category') ? 'bg-surface-container text-primary font-bold' : '' }}"
+                                       data-name="semua koleksi">
+                                    <span class="flex items-center gap-space-xs font-label-md text-label-md {{ !request('category') ? 'text-primary font-bold' : 'text-on-surface-variant' }}">
+                                        <input type="radio" name="category" value="" class="accent-secondary w-3.5 h-3.5"
+                                               {{ !request('category') ? 'checked' : '' }} onchange="document.getElementById('filterForm').submit()"/>
+                                        Semua Koleksi
+                                    </span>
+                                    <span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-bold">{{ $products->total() }}</span>
+                                </label>
+                                @foreach($categories as $cat)
+                                <label class="cat-item flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-surface-container transition-colors {{ request('category') == $cat->id ? 'bg-surface-container text-primary font-bold' : '' }}"
+                                       data-name="{{ strtolower($cat->name) }}">
+                                    <span class="flex items-center gap-space-xs font-label-md text-label-md {{ request('category') == $cat->id ? 'text-primary font-bold' : 'text-on-surface-variant' }}">
+                                        <input type="radio" name="category" value="{{ $cat->id }}" class="accent-secondary w-3.5 h-3.5"
+                                               {{ request('category') == $cat->id ? 'checked' : '' }} onchange="document.getElementById('filterForm').submit()"/>
+                                        {{ $cat->name }}
+                                    </span>
+                                    <span class="text-outline font-label-sm text-label-sm">{{ $cat->products_count }}</span>
+                                </label>
+                                @endforeach
+                                {{-- Pesan kosong saat search tidak ditemukan --}}
+                                <div id="catNoResult" class="hidden text-center text-[12px] text-outline py-3">Tidak ditemukan</div>
+                            </div>
                         </div>
                     </div>
 
@@ -496,15 +516,37 @@ function syncRange() {
 }
 
 function toggleCategoryDropdown() {
-    const list = document.getElementById('categoryDropdownList');
+    const list  = document.getElementById('categoryDropdownList');
     const arrow = document.getElementById('categoryDropdownArrow');
+    const input = document.getElementById('categorySearchInput');
     if (!list || !arrow) return;
-    const isHidden = list.classList.toggle('hidden');
-    if (isHidden) {
+
+    const isNowHidden = list.classList.toggle('hidden');
+    list.classList.toggle('flex', !isNowHidden);
+
+    if (isNowHidden) {
         arrow.classList.remove('rotate-180');
     } else {
         arrow.classList.add('rotate-180');
+        // Auto-fokus ke search input saat dropdown dibuka
+        if (input) setTimeout(() => input.focus(), 80);
     }
+}
+
+function filterCategories(query) {
+    const q       = query.trim().toLowerCase();
+    const items   = document.querySelectorAll('#categoryList .cat-item');
+    const noResult = document.getElementById('catNoResult');
+    let visible = 0;
+
+    items.forEach(item => {
+        const name = item.dataset.name || '';
+        const match = !q || name.includes(q);
+        item.style.display = match ? '' : 'none';
+        if (match) visible++;
+    });
+
+    if (noResult) noResult.classList.toggle('hidden', visible > 0);
 }
 
 function toggleEntireFilter() {
