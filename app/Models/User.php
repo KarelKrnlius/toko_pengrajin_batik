@@ -59,10 +59,9 @@ class User extends Authenticatable
     }
 
     /**
-     * Inisial nama pengguna:
+     * Inisial nama pengguna (Maksimal 2 kata):
      * - 1 kata: 1 huruf (Karel => K)
-     * - 2 kata: 2 huruf (Karel Kornelius => KK)
-     * - 3 kata atau lebih: 3 huruf awal dari 3 kata pertama (Karel Kornelius Alexander => KKA)
+     * - 2 kata atau lebih: 2 huruf awal dari 2 kata pertama (Karel Kornelius Alexander => KK)
      */
     public function getInitialsAttribute(): string
     {
@@ -72,7 +71,7 @@ class User extends Authenticatable
         }
 
         $initials = '';
-        $maxWords = min(3, count($words));
+        $maxWords = min(2, count($words));
         for ($i = 0; $i < $maxWords; $i++) {
             $initials .= mb_substr($words[$i], 0, 1);
         }

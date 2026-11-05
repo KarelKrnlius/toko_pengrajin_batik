@@ -56,34 +56,52 @@
                 </div>
             </div>
 
-            {{-- Hero Visual --}}
-            <div class="lg:col-span-5 relative">
+            {{-- Hero Visual — Auto-rotating slideshow --}}
+            <div class="lg:col-span-5 relative" id="heroSliderWrap">
                 <div class="relative bg-surface-container-lowest p-space-sm rounded-xl shadow-xl">
-                    <div class="relative w-full aspect-[3/4] rounded overflow-hidden">
-                        @if($heroProduct && $heroProduct->image)
-                            <img alt="{{ $heroProduct->name }}"
-                                 class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700"
-                                 src="{{ Storage::url($heroProduct->image) }}"/>
+                    {{-- Slides container --}}
+                    <div class="relative w-full aspect-[3/4] rounded overflow-hidden" id="heroSlider">
+                        @if($heroProducts->count())
+                            @foreach($heroProducts as $i => $hp)
+                            <a href="{{ route('product.show', $hp->id) }}"
+                               class="hero-slide absolute inset-0 transition-opacity duration-700 {{ $i === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0' }}">
+                                <img alt="{{ $hp->name }}"
+                                     class="w-full h-full object-cover"
+                                     src="{{ Storage::url($hp->image) }}"/>
+                                <div class="absolute inset-0 bg-gradient-to-t from-primary/75 via-primary/10 to-transparent"></div>
+                                <div class="absolute bottom-6 left-6 right-6 text-on-primary">
+                                    <span class="font-label-sm text-label-sm uppercase tracking-[0.2em] bg-secondary/80 backdrop-blur-sm px-space-sm py-0.5 rounded text-on-secondary">
+                                        {{ $hp->category->name ?? 'Batik' }}
+                                    </span>
+                                    <p class="font-title-lg text-title-lg font-bold mt-2 text-on-primary leading-snug line-clamp-2">
+                                        {{ $hp->name }}
+                                    </p>
+                                    <p class="font-body-sm text-body-sm text-surface-container-highest mt-1">
+                                        Rp {{ number_format($hp->price, 0, ',', '.') }}
+                                    </p>
+                                </div>
+                            </a>
+                            @endforeach
                         @else
-                            <div class="w-full h-full flex flex-col items-center justify-center bg-surface-container gap-4">
+                            {{-- Fallback jika tidak ada produk --}}
+                            <div class="absolute inset-0 flex flex-col items-center justify-center bg-surface-container gap-4">
                                 <img src="{{ asset('images/logo.png') }}" alt="Juragan Batik"
                                      class="h-24 w-auto object-contain opacity-30" style="mix-blend-mode:multiply;"/>
                                 <span class="text-sm text-outline font-bold tracking-widest uppercase">Juragan Batik</span>
                             </div>
                         @endif
-                        <div class="absolute inset-0 bg-gradient-to-t from-primary/70 via-transparent to-transparent"></div>
-                        <div class="absolute bottom-6 left-6 right-6 text-on-primary">
-                            <span class="font-label-sm text-label-sm uppercase tracking-[0.2em] bg-secondary/80 backdrop-blur-sm px-space-sm py-0.5 rounded text-on-secondary">Koleksi Kasunanan</span>
-                            <p class="font-title-lg text-title-lg font-bold mt-1 text-on-primary">
-                                {{ $heroProduct ? $heroProduct->name : 'Mahakarya Wastra Nusantara' }}
-                            </p>
-                            <p class="font-body-sm text-body-sm text-surface-container-highest">
-                                {{ $heroProduct ? ($heroProduct->category->name ?? 'Batik') . ' Asli' : 'Motif agung kewibawaan dan keteguhan jiwa para ksatria' }}
-                            </p>
-                        </div>
                     </div>
+
+                    {{-- Dots indicator --}}
+                    @if($heroProducts->count() > 1)
+                    <div class="flex items-center justify-center gap-1.5 mt-3" id="heroDots">
+                        @foreach($heroProducts as $i => $hp)
+                        <button class="hero-dot transition-all duration-300 rounded-full {{ $i === 0 ? 'bg-secondary w-6 h-2' : 'bg-outline-variant w-2 h-2' }}"
+                                data-index="{{ $i }}" aria-label="Slide {{ $i + 1 }}"></button>
+                        @endforeach
+                    </div>
+                    @endif
                 </div>
-                {{-- Provenance Card dihapus --}}
             </div>
 
         </div>
@@ -209,6 +227,51 @@
 @endsection
 
 @push('scripts')
+<script>
+// ── Hero Slideshow (5 detik, crossfade) ──────────────────────────
+(function () {
+    const slides = document.querySelectorAll('#heroSlider .hero-slide');
+    const dots   = document.querySelectorAll('#heroDots .hero-dot');
+    if (slides.length <= 1) return;
+
+    let current = 0;
+    let timer   = null;
+
+    function goTo(index) {
+        slides[current].classList.remove('opacity-100', 'z-10');
+        slides[current].classList.add('opacity-0', 'z-0');
+        dots[current]?.classList.remove('bg-secondary', 'w-6');
+        dots[current]?.classList.add('bg-outline-variant', 'w-2');
+
+        current = (index + slides.length) % slides.length;
+
+        slides[current].classList.remove('opacity-0', 'z-0');
+        slides[current].classList.add('opacity-100', 'z-10');
+        dots[current]?.classList.remove('bg-outline-variant', 'w-2');
+        dots[current]?.classList.add('bg-secondary', 'w-6');
+    }
+
+    function startTimer() {
+        timer = setInterval(() => goTo(current + 1), 5000);
+    }
+
+    // Dot click navigation
+    dots.forEach((dot, i) => dot.addEventListener('click', () => {
+        clearInterval(timer);
+        goTo(i);
+        startTimer();
+    }));
+
+    // Pause on hover
+    const wrap = document.getElementById('heroSliderWrap');
+    if (wrap) {
+        wrap.addEventListener('mouseenter', () => clearInterval(timer));
+        wrap.addEventListener('mouseleave', startTimer);
+    }
+
+    startTimer();
+})();
+</script>
 <script>
 (function () {
     // ── Data produk dari Laravel ──────────────────────────────────

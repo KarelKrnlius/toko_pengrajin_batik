@@ -152,7 +152,7 @@
                 <span class="material-symbols-outlined text-outline text-[18px] pointer-events-none">expand_more</span>
             </button>
             <div id="toolbarCategoryMenu"
-                 class="hidden absolute left-0 top-full mt-1 w-full min-w-[200px] bg-surface-container-lowest border border-outline-variant rounded-lg shadow-xl z-40 max-h-[220px] overflow-y-auto py-1">
+                 class="hidden absolute left-0 top-full mt-1 w-full min-w-[200px] bg-surface-container-lowest border border-outline-variant rounded-lg shadow-xl z-40 max-h-[220px] overflow-y-auto py-1 pr-1.5">
                 <div onclick="selectToolbarCategory('', 'Semua Kategori')"
                      class="px-3 py-2 text-sm text-on-surface hover:bg-surface-container cursor-pointer transition-colors flex items-center justify-between {{ !request('category') ? 'bg-surface-container text-primary font-bold' : '' }}">
                     <span>Semua Kategori</span>
@@ -538,7 +538,7 @@
                                onclick="openCategoryCombobox('tambah')" oninput="filterCategoryCombobox('tambah')" onfocus="openCategoryCombobox('tambah')"/>
                         <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
                     </div>
-                    <div id="tambah_category_list" class="hidden absolute left-0 right-0 top-full mt-1 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto py-1">
+                    <div id="tambah_category_list" class="hidden absolute left-0 right-0 top-full mt-1 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto py-1 pr-1.5">
                         @foreach($categories as $cat)
                             <div class="px-3 py-2 text-sm text-on-surface hover:bg-surface-container cursor-pointer transition-colors flex items-center justify-between category-item"
                                  data-id="{{ $cat->id }}" data-name="{{ strtolower($cat->name) }}"
@@ -685,7 +685,7 @@
                                onclick="openCategoryCombobox('edit')" oninput="filterCategoryCombobox('edit')" onfocus="openCategoryCombobox('edit')"/>
                         <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
                     </div>
-                    <div id="edit_category_list" class="hidden absolute left-0 right-0 top-full mt-1 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto py-1">
+                    <div id="edit_category_list" class="hidden absolute left-0 right-0 top-full mt-1 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto py-1 pr-1.5">
                         @foreach($categories as $cat)
                             <div class="px-3 py-2 text-sm text-on-surface hover:bg-surface-container cursor-pointer transition-colors flex items-center justify-between category-item"
                                  data-id="{{ $cat->id }}" data-name="{{ strtolower($cat->name) }}"

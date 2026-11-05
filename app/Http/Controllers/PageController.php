@@ -27,13 +27,16 @@ class PageController extends Controller
                 ];
             });
 
-        // Gambar hero — ambil produk pertama yang punya gambar
-        $heroProduct = Product::with('category')
+        // Gambar hero — ambil semua produk berfoto dari katalog untuk rotasi otomatis setiap 5 detik
+        $heroProducts = Product::with('category')
             ->whereNotNull('image')
             ->latest()
-            ->first();
+            ->take(10)
+            ->get();
 
-        return view('home', compact('allProducts', 'heroProduct'));
+        $heroProduct = $heroProducts->first();
+
+        return view('home', compact('allProducts', 'heroProducts', 'heroProduct'));
     }
 
     /**

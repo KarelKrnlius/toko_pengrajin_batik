@@ -216,7 +216,7 @@
                             </div>
                         </button>
 
-                        <div id="categoryDropdownList" class="flex flex-col gap-1 p-2 pt-1 border-t border-outline-variant/30 max-h-60 overflow-y-auto">
+                        <div id="categoryDropdownList" class="flex flex-col gap-1 p-2 pt-1 pr-1.5 border-t border-outline-variant/30 max-h-60 overflow-y-auto">
                             <label class="flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-surface-container transition-colors {{ !request('category') ? 'bg-surface-container text-primary font-bold' : '' }}">
                                 <span class="flex items-center gap-space-xs font-label-md text-label-md {{ !request('category') ? 'text-primary font-bold' : 'text-on-surface-variant' }}">
                                     <input type="radio" name="category" value="" class="accent-secondary w-3.5 h-3.5"

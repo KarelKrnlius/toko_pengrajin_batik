@@ -5,6 +5,10 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>@yield('title', 'Juragan Batik') — Adiluhung Surakarta</title>
 
+    {{-- Favicon Batik --}}
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}"/>
+    <link rel="apple-touch-icon" href="{{ asset('images/logo.png') }}"/>
+
     {{-- Material Symbols --}}
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -128,7 +132,31 @@
             main > :first-child { margin-top: 0 !important; }
             main > :last-child  { margin-bottom: 0 !important; }
         }
-        ::-webkit-scrollbar { display: none; }
+
+        /* ── Penanda Garis Scroll (Elemen Garis-Garis di Pinggir Penanda Bisa di-Scroll) ── */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f7f3ed;
+            border-left: 2px dashed #bfaaa0; /* Garis-garis vertikal di pinggir */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #904c2e; /* Warna sekunder khas wastra */
+            border-radius: 4px;
+            border: 1px solid #fdf9f3;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #311908; /* Warna primer lebih gelap saat diarahkan */
+        }
+
+        /* Firefox */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #904c2e #f7f3ed;
+        }
     </style>
 
     @stack('styles')

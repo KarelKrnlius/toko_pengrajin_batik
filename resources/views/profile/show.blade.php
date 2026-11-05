@@ -56,7 +56,7 @@
                 @php
                     $initials = $user->initials;
                     $initialsLen = mb_strlen($initials);
-                    $textSize = $initialsLen >= 3 ? 'text-lg sm:text-xl tracking-wider' : ($initialsLen === 2 ? 'text-2xl tracking-widest' : 'text-3xl');
+                    $textSize = $initialsLen === 2 ? 'text-2xl tracking-widest' : 'text-3xl';
                 @endphp
                 <div class="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-secondary text-on-primary flex items-center justify-center font-serif font-bold shadow-md mb-4 {{ $textSize }} select-none">
                     {{ $initials }}
