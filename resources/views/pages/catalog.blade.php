@@ -11,7 +11,7 @@
     }
     .range-slider {
         position: absolute; pointer-events: none;
-        height: 4px; background: transparent; top: -5px;
+        height: 4px; background: transparent; top: 1px;
     }
     .range-slider::-webkit-slider-thumb {
         -webkit-appearance: none; appearance: none;
@@ -63,15 +63,6 @@
 <div class="relative w-full overflow-hidden">
 <div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin pt-space-lg pb-space-xl">
 
-    {{-- Breadcrumb --}}
-    <div class="flex items-center justify-between gap-space-sm mb-space-md">
-        <nav class="flex items-center gap-space-xs text-on-surface-variant font-label-md text-label-md">
-            <a href="{{ route('home') }}" class="hover:text-primary transition-colors">Beranda</a>
-            <span class="material-symbols-outlined text-[14px] text-outline">chevron_right</span>
-            <span class="text-primary font-semibold">Katalog Wastra Nusantara</span>
-        </nav>
-    </div>
-
     {{-- Page Header --}}
     <div class="relative mb-space-xl">
         <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-space-lg">
@@ -91,18 +82,8 @@
                         <span class="font-headline-sm text-headline-sm text-primary font-bold">{{ $products->total() }}</span>
                         <span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Koleksi Terkurasi</span>
                     </div>
-                    <span class="font-body-sm text-body-sm text-outline">Siap Kirim &amp; Arsip Bespoke</span>
+                    <span class="font-body-sm text-body-sm text-outline">Siap Kirim</span>
                 </div>
-            </div>
-        </div>
-
-        {{-- Divider --}}
-        <div class="relative flex items-center justify-center my-space-lg">
-            <div class="w-full h-px bg-surface-container-highest"></div>
-            <div class="absolute px-space-md bg-background flex items-center gap-space-xs">
-                <span class="text-[10px] tracking-widest text-outline uppercase font-label-sm">SANCTUARY WASTRA</span>
-                <span class="material-symbols-outlined text-[16px] text-secondary">diamond</span>
-                <span class="text-[10px] tracking-widest text-outline uppercase font-label-sm">EST. 1928</span>
             </div>
         </div>
 
@@ -293,13 +274,13 @@
                                    min="0" max="10000000" step="100000"
                                    value="{{ request('price_min', 0) }}"
                                    class="range-slider absolute w-full"
-                                   style="top:-14px;"
+                                   style="top:1px;"
                                    oninput="syncRange()"/>
                             <input type="range" name="price_max" id="rangeMax"
                                    min="0" max="10000000" step="100000"
                                    value="{{ request('price_max', 10000000) }}"
                                    class="range-slider absolute w-full"
-                                   style="top:-14px;"
+                                   style="top:1px;"
                                    oninput="syncRange()"/>
                         </div>
 
@@ -311,15 +292,6 @@
                     </div>
 
                 </form>
-
-                {{-- 3. Sertifikat Otentisitas --}}
-                <div class="p-space-md bg-surface-container rounded-lg flex items-start gap-space-sm border-t border-outline-variant pt-space-md">
-                    <span class="material-symbols-outlined text-secondary text-[24px] flex-shrink-0">verified</span>
-                    <div class="flex flex-col gap-0.5">
-                        <span class="font-label-md text-label-md text-primary font-bold">Sertifikat Otentisitas</span>
-                        <p class="font-body-sm text-body-sm text-on-surface-variant leading-snug">Setiap helai kain dilengkapi sertifikat fisik bernomor registrasi pembatik.</p>
-                    </div>
-                </div>
 
             </div>
         </aside>
