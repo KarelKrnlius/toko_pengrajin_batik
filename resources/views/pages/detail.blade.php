@@ -54,33 +54,18 @@
 
 @section('content')
 
-{{-- Breadcrumb --}}
-<section class="w-full bg-surface-container-low/70 py-space-md">
-    <div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin flex flex-wrap items-center justify-between gap-space-sm">
-        <nav aria-label="Breadcrumb" class="flex items-center gap-space-xs text-on-surface-variant font-label-md text-label-md">
-            <a href="{{ route('home') }}" class="hover:text-primary transition-colors">Beranda</a>
-            <span class="material-symbols-outlined text-[14px] text-outline">chevron_right</span>
-            <a href="{{ route('catalog') }}" class="hover:text-primary transition-colors">Katalog Batik</a>
-            <span class="material-symbols-outlined text-[14px] text-outline">chevron_right</span>
-            <span class="text-on-surface-variant">{{ $product->category->name ?? 'Produk' }}</span>
-            <span class="material-symbols-outlined text-[14px] text-outline">chevron_right</span>
-            <span class="text-secondary font-bold line-clamp-1 max-w-[200px]">{{ $product->name }}</span>
-        </nav>
-    </div>
-</section>
-
 {{-- Main 2-Column --}}
-<section class="w-full py-space-xl">
-    <div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-start">
+<section class="w-full py-6 sm:py-8">
+    <div class="max-w-[1200px] mx-auto px-margin-mobile lg:px-margin">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
 
-            {{-- ── Kolom Kiri: Gambar (Ukuran lebih besar & responsive) ── --}}
-            <div class="lg:col-span-5 flex flex-col gap-space-lg w-full max-w-md mx-auto lg:max-w-none">
-                <div class="relative bg-surface-container-lowest rounded-xl p-3 sm:p-4 shadow-md overflow-hidden max-w-[460px] mx-auto w-full">
+            {{-- ── Kolom Kiri: Gambar (Ukuran lebih ringkas & proporsional) ── --}}
+            <div class="lg:col-span-5 flex flex-col gap-4 w-full max-w-sm mx-auto lg:max-w-none">
+                <div class="relative bg-surface-container-lowest rounded-xl p-3 shadow-sm border border-outline-variant/50 overflow-hidden max-w-[360px] mx-auto w-full">
 
                     {{-- Foto utama — klik untuk zoom --}}
                     <div class="relative rounded-lg overflow-hidden bg-surface-container w-full"
-                         style="aspect-ratio:3/4; max-width:420px; margin:0 auto;">
+                         style="aspect-ratio:3/4; max-width:340px; margin:0 auto;">
                         @if($product->image)
                             <img alt="{{ $product->name }}"
                                  class="w-full h-full object-cover clickable-img transition-transform duration-300 hover:scale-105"
@@ -88,83 +73,83 @@
                                  src="{{ Storage::url($product->image) }}"
                                  onclick="openLightbox('{{ Storage::url($product->image) }}')"/>
                             {{-- Hint zoom --}}
-                            <div class="absolute bottom-2 right-2 bg-primary/80 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1 pointer-events-none">
-                                <span class="material-symbols-outlined text-on-primary text-[14px]">zoom_in</span>
-                                <span class="text-on-primary text-[10px] font-bold">Klik untuk zoom</span>
+                            <div class="absolute bottom-2 right-2 bg-primary/80 backdrop-blur-sm rounded-full px-2 py-0.5 flex items-center gap-1 pointer-events-none">
+                                <span class="material-symbols-outlined text-on-primary text-[13px]">zoom_in</span>
+                                <span class="text-on-primary text-[9px] font-bold">Klik zoom</span>
                             </div>
                         @else
                             <div class="w-full h-full flex items-center justify-center bg-surface-container">
-                                <span class="material-symbols-outlined text-[80px] text-outline">draw</span>
+                                <span class="material-symbols-outlined text-[70px] text-outline">draw</span>
                             </div>
                         @endif
-                        <div class="absolute top-3 left-3 flex flex-col gap-1 items-start pointer-events-none">
-                            <span class="px-2 py-0.5 bg-surface/95 backdrop-blur-md rounded-full font-label-sm text-[10px] text-primary tracking-widest shadow-sm flex items-center gap-1 font-bold">
-                                <span class="material-symbols-outlined text-[12px] text-secondary">verified</span>
+                        <div class="absolute top-2.5 left-2.5 flex flex-col gap-1 items-start pointer-events-none">
+                            <span class="px-2 py-0.5 bg-surface/95 backdrop-blur-md rounded-full font-label-sm text-[9px] text-primary tracking-wider shadow-sm flex items-center gap-1 font-bold">
+                                <span class="material-symbols-outlined text-[11px] text-secondary">verified</span>
                                 {{ strtoupper($product->category->name ?? 'BATIK') }} ASLI
                             </span>
                         </div>
                     </div>
 
                     {{-- Info Stok & Sertifikasi --}}
-                    <div class="mt-3 flex items-center justify-around gap-2 bg-surface-container-low px-3 py-2 rounded-lg">
+                    <div class="mt-2.5 flex items-center justify-around gap-2 bg-surface-container-low px-3 py-1.5 rounded-lg">
                         <div class="flex items-center gap-1.5">
-                            <span class="material-symbols-outlined text-secondary text-[18px]">history_edu</span>
+                            <span class="material-symbols-outlined text-secondary text-[16px]">history_edu</span>
                             <div>
-                                <span class="block text-[9px] text-outline uppercase font-semibold">Stok</span>
-                                <span class="text-[12px] text-primary font-bold">{{ $product->stock }} pcs</span>
+                                <span class="block text-[8px] text-outline uppercase font-semibold">Stok</span>
+                                <span class="text-[11px] text-primary font-bold">{{ $product->stock }} pcs</span>
                             </div>
                         </div>
-                        <div class="h-6 w-px bg-outline-variant/60"></div>
+                        <div class="h-5 w-px bg-outline-variant/60"></div>
                         <div class="flex items-center gap-1.5">
-                            <span class="material-symbols-outlined text-secondary text-[18px]">award_star</span>
+                            <span class="material-symbols-outlined text-secondary text-[16px]">award_star</span>
                             <div>
-                                <span class="block text-[9px] text-outline uppercase font-semibold">Sertifikasi</span>
-                                <span class="text-[12px] text-primary font-bold">Batik Mark</span>
+                                <span class="block text-[8px] text-outline uppercase font-semibold">Sertifikasi</span>
+                                <span class="text-[11px] text-primary font-bold">Batik Mark</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {{-- ── Kolom Kanan: Info & Pembelian ── --}}
-            <div class="lg:col-span-7 flex flex-col gap-space-lg">
-                <div class="bg-surface-container-lowest p-4 sm:p-space-lg rounded-xl shadow-md flex flex-col gap-space-md">
+            {{-- ── Kolom Kanan: Info & Pembelian (Dikecilkan dan lebih padat) ── --}}
+            <div class="lg:col-span-7 flex flex-col gap-4">
+                <div class="bg-surface-container-lowest p-4 sm:p-5 rounded-xl shadow-sm border border-outline-variant/50 flex flex-col gap-3.5">
 
-                    <div class="flex flex-col gap-space-xs">
+                    <div class="flex flex-col gap-1">
                         <div class="flex items-center justify-between">
-                            <span class="font-label-md text-label-md tracking-[0.2em] text-secondary font-bold uppercase">{{ $product->category->name ?? 'BATIK' }}</span>
-                            <div class="flex items-center gap-1 bg-surface-container px-space-sm py-0.5 rounded-full">
-                                <span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings:'FILL' 1;">star</span>
-                                <span class="font-label-md text-label-md font-bold">5.0</span>
+                            <span class="text-[10px] tracking-[0.2em] text-secondary font-bold uppercase">{{ $product->category->name ?? 'BATIK' }}</span>
+                            <div class="flex items-center gap-1 bg-surface-container px-2 py-0.5 rounded-full">
+                                <span class="material-symbols-outlined text-[14px] text-secondary" style="font-variation-settings:'FILL' 1;">star</span>
+                                <span class="text-[11px] font-bold">5.0</span>
                             </div>
                         </div>
-                        <h1 class="font-headline-md text-headline-md text-primary leading-tight">{{ $product->name }}</h1>
+                        <h1 class="font-headline-sm text-lg sm:text-xl font-bold text-primary leading-snug">{{ $product->name }}</h1>
                     </div>
 
-                    <div class="flex flex-col bg-surface-container-low p-space-md rounded-lg gap-space-xs">
+                    <div class="flex flex-col bg-surface-container-low p-3 rounded-lg gap-1">
                         <div class="flex items-baseline justify-between">
                             <div class="flex flex-col">
-                                <span class="font-label-sm text-label-sm text-outline tracking-wider uppercase">Nilai Investasi</span>
-                                <span class="font-headline-sm text-headline-sm text-primary font-bold">Rp {{ number_format($product->price, 0, ',', '.') }}</span>
+                                <span class="text-[10px] text-outline tracking-wider uppercase font-semibold">Nilai Investasi</span>
+                                <span class="font-serif text-lg sm:text-xl text-primary font-bold">Rp {{ number_format($product->price, 0, ',', '.') }}</span>
                             </div>
-                            <span class="px-space-sm py-1 bg-surface-container-highest text-on-surface-variant font-label-sm text-label-sm rounded">Harga Kolektor</span>
+                            <span class="px-2 py-0.5 bg-surface-container-highest text-on-surface-variant text-[10px] rounded font-medium">Harga Kolektor</span>
                         </div>
                         @if($product->stock > 0 && $product->stock <= 10)
-                        <div class="flex items-center gap-space-xs pt-space-xs text-secondary font-label-md text-label-md">
-                            <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+                        <div class="flex items-center gap-1 pt-0.5 text-secondary text-xs">
+                            <span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>
                             <span class="font-bold">Hanya {{ $product->stock }} tersisa</span>
                         </div>
                         @elseif($product->stock == 0)
-                        <div class="flex items-center gap-space-xs pt-space-xs text-error font-label-md text-label-md">
-                            <span class="material-symbols-outlined text-[16px]">cancel</span>
+                        <div class="flex items-center gap-1 pt-0.5 text-error text-xs">
+                            <span class="material-symbols-outlined text-[14px]">cancel</span>
                             <span class="font-bold">Stok Habis</span>
                         </div>
                         @endif
                     </div>
 
-                    <div class="flex flex-col gap-space-xs">
-                        <span class="font-label-md text-label-md text-primary font-bold tracking-wider uppercase">Deskripsi Produk</span>
-                        <p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">{{ $product->description }}</p>
+                    <div class="flex flex-col gap-1">
+                        <span class="text-[10px] text-primary font-bold tracking-wider uppercase">Deskripsi Produk</span>
+                        <p class="text-xs text-on-surface-variant leading-relaxed">{{ $product->description }}</p>
                     </div>
 
                     {{-- Notifikasi Flash Pesan --}}

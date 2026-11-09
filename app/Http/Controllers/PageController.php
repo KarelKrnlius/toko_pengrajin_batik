@@ -41,7 +41,7 @@ class PageController extends Controller
 
         $heroProduct = $heroProducts->first();
 
-        return view('home', compact('allProducts', 'heroProducts', 'heroProduct'));
+        return view('pages.home', compact('allProducts', 'heroProducts', 'heroProduct'));
     }
 
     /**
@@ -90,7 +90,7 @@ class PageController extends Controller
             ? \App\Models\Favorite::where('user_id', auth()->id())->pluck('product_id')->toArray()
             : [];
 
-        return view('catalog', compact('products', 'categories', 'userFavoriteIds'));
+        return view('pages.catalog', compact('products', 'categories', 'userFavoriteIds'));
     }
 
     /**
@@ -107,7 +107,7 @@ class PageController extends Controller
             ->take(4)
             ->get();
 
-        return view('detail', compact('product', 'related'));
+        return view('pages.detail', compact('product', 'related'));
     }
 
     /**
@@ -115,6 +115,6 @@ class PageController extends Controller
      */
     public function about()
     {
-        return view('about');
+        return view('pages.about');
     }
 }
