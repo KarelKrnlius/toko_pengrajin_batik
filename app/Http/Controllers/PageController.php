@@ -9,11 +9,15 @@ use Illuminate\Http\Request;
 class PageController extends Controller
 {
     /**
-     * Beranda: 3 slot kartu yang auto-rotate dari semua produk.
+     * Beranda: 3 slot kartu yang auto-rotate dari semua produk yang masih ada stok.
      */
     public function home()
     {
-        $allProducts = Product::with('category')->latest()->get()
+        // Hanya ambil produk yang memiliki stok (> 0) agar produk yang habis tidak tampil fotonya di beranda
+        $allProducts = Product::with('category')
+            ->where('stock', '>', 0)
+            ->latest()
+            ->get()
             ->map(function ($p) {
                 return [
                     'id'       => $p->id,
@@ -27,8 +31,9 @@ class PageController extends Controller
                 ];
             });
 
-        // Gambar hero — ambil semua produk berfoto dari katalog untuk rotasi otomatis setiap 5 detik
+        // Gambar hero — ambil semua produk berfoto yang masih ada stok untuk rotasi otomatis
         $heroProducts = Product::with('category')
+            ->where('stock', '>', 0)
             ->whereNotNull('image')
             ->latest()
             ->take(10)
@@ -66,7 +71,10 @@ class PageController extends Controller
             $query->where('price', '<=', (int) $request->price_max);
         }
 
-        // Sort
+        // Urutkan produk yang habis (stock <= 0) selalu berada di paling bawah
+        $query->orderByRaw('CASE WHEN stock > 0 THEN 0 ELSE 1 END');
+
+        // Sort lanjutan berdasarkan pilihan pengguna
         $sort = $request->get('sort', 'terbaru');
         $query = match ($sort) {
             'nama_az'    => $query->orderBy('name'),

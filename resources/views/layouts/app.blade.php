@@ -235,16 +235,16 @@
             </form>
 
             {{-- Login / User Menu --}}
-            <div class="flex items-center gap-3 h-9">
+            <div class="flex items-center gap-2 sm:gap-3 h-9">
                 @auth
                 {{-- User/Admin sudah login --}}
-                <div class="relative hidden sm:flex items-center h-9" id="userMenuWrap">
+                <div class="relative flex items-center h-9" id="userMenuWrap">
                     <button id="userMenuBtn" type="button"
-                            class="flex items-center gap-1.5 px-3 bg-surface-container hover:bg-surface-container-high text-on-surface text-sm font-semibold rounded-lg transition-colors h-9 shadow-sm">
+                            class="flex items-center gap-1.5 px-2 sm:px-3 bg-surface-container hover:bg-surface-container-high text-on-surface text-sm font-semibold rounded-lg transition-colors h-9 shadow-sm">
                         <div class="w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center flex-shrink-0 text-[10px] font-bold font-serif select-none">
                             {{ mb_substr(Auth::user()->initials, 0, 2) }}
                         </div>
-                        <span class="max-w-[120px] truncate">{{ Auth::user()->name }}</span>
+                        <span class="hidden md:inline max-w-[120px] truncate">{{ Auth::user()->name }}</span>
                         <span class="material-symbols-outlined text-[16px] text-outline">expand_more</span>
                     </button>
                     <div id="userDropdown"
@@ -343,7 +343,7 @@
                 @else
                 {{-- Belum login: tombol Login + Daftar --}}
                 <a href="{{ route('login') }}"
-                   class="hidden sm:flex items-center gap-1.5 px-3 bg-surface-container hover:bg-surface-container-high text-on-surface text-sm font-semibold rounded-lg transition-colors h-9 shadow-sm">
+                   class="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 bg-surface-container hover:bg-surface-container-high text-on-surface text-xs sm:text-sm font-semibold rounded-lg transition-colors h-9 shadow-sm">
                     <span class="material-symbols-outlined text-[16px] text-secondary">login</span>
                     <span>Login</span>
                 </a>
@@ -363,10 +363,25 @@
     </div>
 
     {{-- Mobile Nav --}}
-    <div id="mobileNav" class="hidden lg:hidden bg-surface border-t border-surface-container px-margin-mobile py-space-md flex flex-col gap-space-sm">
-        <a href="{{ route('home') }}" class="font-label-lg text-label-lg {{ request()->routeIs('home') ? 'text-primary font-bold' : 'text-on-surface-variant' }} py-space-xs">Beranda</a>
-        <a href="{{ route('catalog') }}" class="font-label-lg text-label-lg {{ request()->routeIs('catalog') ? 'text-primary font-bold' : 'text-on-surface-variant' }} py-space-xs">Katalog Batik</a>
-        <a href="{{ route('about') }}" class="font-label-lg text-label-lg {{ request()->routeIs('about') ? 'text-primary font-bold' : 'text-on-surface-variant' }} py-space-xs">Filosofi Motif</a>
+    <div id="mobileNav" class="hidden lg:hidden bg-surface border-t border-surface-container px-margin-mobile py-space-md flex flex-col gap-space-sm max-h-[calc(100vh-5rem)] overflow-y-auto">
+        {{-- Search bar di mobile --}}
+        <form action="{{ route('catalog') }}" method="GET"
+              class="m-0 md:hidden flex items-center bg-surface-container-low px-3 rounded-lg shadow-sm w-full h-10 border border-outline-variant/40 focus-within:border-secondary transition-colors mb-2">
+            <span class="material-symbols-outlined text-outline text-[18px] mr-2 flex-shrink-0 select-none">search</span>
+            <input name="search" value="{{ request('search') }}"
+                   class="bg-transparent text-on-surface text-sm placeholder:text-outline focus:outline-none w-full py-0 border-0 leading-normal"
+                   placeholder="Cari motif Parang, Kawung..."/>
+        </form>
+
+        <a href="{{ route('home') }}" class="font-label-lg text-label-lg {{ request()->routeIs('home') ? 'text-primary font-bold' : 'text-on-surface-variant' }} py-space-xs flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">home</span> Beranda
+        </a>
+        <a href="{{ route('catalog') }}" class="font-label-lg text-label-lg {{ request()->routeIs('catalog') ? 'text-primary font-bold' : 'text-on-surface-variant' }} py-space-xs flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">storefront</span> Katalog Batik
+        </a>
+        <a href="{{ route('about') }}" class="font-label-lg text-label-lg {{ request()->routeIs('about') ? 'text-primary font-bold' : 'text-on-surface-variant' }} py-space-xs flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">auto_stories</span> Filosofi Motif
+        </a>
         <div class="border-t border-surface-container pt-space-sm mt-space-xs">
             @auth
                 @if(Auth::user()->isAdmin())
@@ -433,28 +448,14 @@
 {{-- ══════════════════ FOOTER ══════════════════ --}}
 <footer class="w-full bg-surface-container-low py-space-xl mt-space-xl shadow-[0_-1px_8px_rgba(74,46,27,0.03)]">
     <div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-space-xl mb-space-xl">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-space-xl mb-space-xl">
             <div class="flex flex-col gap-space-sm">
                 <span class="font-title-lg text-title-lg tracking-[0.2em] text-primary uppercase">JURAGAN BATIK</span>
                 <p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
                     Preservasi mahakarya adiluhung batik tulis tangan keraton, diproduksi dengan malam lebah murni dan pewarna soga alami di Surakarta Hadiningrat.
                 </p>
             </div>
-            <div class="flex flex-col gap-space-sm">
-                <span class="font-label-lg text-label-lg text-primary uppercase tracking-widest font-bold">Koleksi Adiluhung</span>
-                <a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="{{ route('catalog') }}">Batik Tulis Tembokan</a>
-                <a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="{{ route('catalog') }}">Sutera Baron Exclusive</a>
-                <a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="{{ route('catalog') }}">Kain Adat Pengantin</a>
-                <a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="{{ route('catalog') }}">Pusaka Sandang Terbatas</a>
-            </div>
-            <div class="flex flex-col gap-space-sm">
-                <span class="font-label-lg text-label-lg text-primary uppercase tracking-widest font-bold">Atelier & Layanan</span>
-                <a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Konsultasi Busana Bespoke</a>
-                <a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Sertifikasi Keaslian Wastra</a>
-                <a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Pemeliharaan Kain Antik</a>
-                <a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Kunjungan Galeri Privat</a>
-            </div>
-            <div class="flex flex-col gap-space-sm">
+            <div class="flex flex-col gap-space-sm md:items-end md:text-right">
                 <span class="font-label-lg text-label-lg text-primary uppercase tracking-widest font-bold">Sanctuary Resmi</span>
                 <p class="font-body-sm text-body-sm text-on-surface-variant">Dalem Juragan Heritage, Jl. Slamet Riyadi No. 128, Surakarta, Jawa Tengah 57141</p>
                 <span class="font-label-md text-label-md text-secondary">concierge@juraganbatik.id</span>

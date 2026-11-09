@@ -19,11 +19,11 @@
                 Pilih atau cari email pelanggan untuk pengisian otomatis nomor telepon, nama, dan alamat pengiriman.
             </p>
         </div>
-        <div class="flex items-center gap-space-sm flex-shrink-0">
+        <div class="flex items-center gap-space-sm flex-shrink-0 w-full sm:w-auto">
             <a href="{{ route('admin.orders.index') }}"
-               class="inline-flex items-center justify-center gap-space-xs px-space-md bg-on-primary/10 hover:bg-on-primary/20 text-on-primary font-label-lg text-label-lg rounded transition-colors h-10">
+               class="w-full sm:w-auto inline-flex items-center justify-center gap-space-xs px-space-md bg-on-primary/10 hover:bg-on-primary/20 text-on-primary font-label-lg text-label-lg rounded-xl sm:rounded transition-colors h-10">
                 <span class="material-symbols-outlined text-[20px]">receipt_long</span>
-                <span class="hidden sm:inline">Daftar Pesanan</span>
+                <span>Daftar Pesanan</span>
             </a>
         </div>
     </div>

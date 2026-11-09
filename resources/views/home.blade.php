@@ -38,18 +38,18 @@
                 </div>
 
                 {{-- Authenticity Seals --}}
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-space-sm pt-space-lg">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-space-sm pt-space-lg">
                     @foreach ([
                         ['verified',           '100% SUTRA & MORI', 'Serat Halus Primissima'],
                         ['workspace_premium',  'BATIK MARK',        'Sertifikasi Resmi RI'],
                         ['eco',                'SOGA ALAMI',        'Ekstrak Kulit Kayu'],
                         ['fingerprint',        'SERI CANTING',      'Kurasi Terbatas Unik'],
                     ] as [$icon, $title, $sub])
-                    <div class="bg-surface-container-lowest p-space-sm rounded shadow-sm flex items-center gap-space-xs">
-                        <span class="material-symbols-outlined text-secondary text-[22px]">{{ $icon }}</span>
-                        <div class="flex flex-col">
-                            <span class="font-label-sm text-label-sm text-primary font-bold">{{ $title }}</span>
-                            <span class="font-body-sm text-body-sm text-on-surface-variant text-[11px] leading-tight">{{ $sub }}</span>
+                    <div class="bg-surface-container-lowest p-2.5 sm:p-space-sm rounded-lg sm:rounded shadow-sm flex items-center gap-2 sm:gap-space-xs">
+                        <span class="material-symbols-outlined text-secondary text-[20px] sm:text-[22px] flex-shrink-0">{{ $icon }}</span>
+                        <div class="flex flex-col min-w-0">
+                            <span class="font-label-sm text-[11px] sm:text-label-sm text-primary font-bold truncate">{{ $title }}</span>
+                            <span class="font-body-sm text-[10px] sm:text-[11px] text-on-surface-variant leading-tight truncate">{{ $sub }}</span>
                         </div>
                     </div>
                     @endforeach
@@ -134,11 +134,11 @@
         </div>
         @else
 
-        {{-- Grid 4 kartu --}}
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-space-md" id="productSlider">
+        {{-- Grid kartu produk responsif (1 kolom di HP kecil < 480px, 2 kolom di tablet/HP sedang, 4 kolom di desktop) --}}
+        <div class="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-space-md" id="productSlider">
             {{-- 4 slot kartu -- diisi JS --}}
             @for($i = 0; $i < 4; $i++)
-            <div class="product-card bg-surface-container-lowest rounded-lg shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col group overflow-hidden opacity-0"
+            <div class="product-card bg-surface-container-lowest rounded-lg shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col group overflow-hidden opacity-0 {{ $i >= 2 ? 'hidden xs:flex md:flex' : '' }}"
                  style="transition: opacity 0.4s ease, transform 0.4s ease;">
             </div>
             @endfor
@@ -281,11 +281,10 @@
 
     const SLOTS      = 4;          // jumlah kartu tampil
     const INTERVAL   = 4000;       // ms antar rotate
-    const ANIM       = 400;        // ms durasi fade
+    const FADE_DUR   = 250;        // ms durasi fade out -> ganti konten
 
     let currentStart = 0;          // index produk di kartu pertama
     let timer        = null;
-    let progressTimer= null;
 
     const slider     = document.getElementById('productSlider');
     const dots       = document.getElementById('dotIndicators');
@@ -362,36 +361,43 @@
             </div>`;
     }
 
-    // ── Tampilkan set produk mulai index tertentu (dengan fade) ───
-    function showSlide(startIndex, direction = 1) {
-        // fade out
+    // ── Tampilkan set produk mulai index tertentu ───
+    function showSlide(startIndex, direction = 1, isInitial = false) {
+        if (isInitial) {
+            for (let i = 0; i < SLOTS; i++) {
+                const idx = (startIndex + i) % products.length;
+                renderCard(cards[i], products[idx]);
+                cards[i].style.opacity = '1';
+                cards[i].style.transform = 'none';
+            }
+            currentStart = startIndex;
+            updateDots();
+            startProgress();
+            return;
+        }
+
+        // Fade out cepat dan serempak
         cards.forEach(c => {
+            c.style.transition = `opacity ${FADE_DUR}ms ease`;
             c.style.opacity    = '0';
-            c.style.transform  = `translateX(${direction * 20}px)`;
         });
 
         setTimeout(() => {
             for (let i = 0; i < SLOTS; i++) {
-                const idx  = (startIndex + i) % products.length;
+                const idx = (startIndex + i) % products.length;
                 renderCard(cards[i], products[idx]);
-                cards[i].style.transform = `translateX(${-direction * 20}px)`;
             }
-            // trigger reflow lalu fade in
+
             requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    cards.forEach((c, i) => {
-                        setTimeout(() => {
-                            c.style.opacity   = '1';
-                            c.style.transform = 'translateX(0)';
-                        }, i * 60);
-                    });
+                cards.forEach(c => {
+                    c.style.opacity = '1';
                 });
             });
-        }, ANIM);
 
-        currentStart = startIndex;
-        updateDots();
-        startProgress();
+            currentStart = startIndex;
+            updateDots();
+            startProgress();
+        }, FADE_DUR);
     }
 
     function goTo(index) {
@@ -400,10 +406,9 @@
         showSlide(index, dir);
     }
 
-    // ── Progress bar ─────────────────────────────────────────────
+    // ── Progress bar sinkron tepat waktu ────────────────────────
     function startProgress() {
         if (!progressEl) return;
-        clearInterval(progressTimer);
         progressEl.style.transition = 'none';
         progressEl.style.width      = '0%';
         requestAnimationFrame(() => {
@@ -414,12 +419,15 @@
         });
     }
 
-    // ── Auto-play ────────────────────────────────────────────────
+    function nextSlide() {
+        const next = (currentStart + SLOTS) % products.length;
+        showSlide(next, 1);
+    }
+
+    // ── Auto-play teratur tepat saat interval selesai ───────────
     function startTimer() {
-        timer = setInterval(() => {
-            const next = (currentStart + SLOTS) % products.length;
-            showSlide(next, 1);
-        }, INTERVAL);
+        clearInterval(timer);
+        timer = setInterval(nextSlide, INTERVAL);
     }
 
     function resetTimer() {
@@ -427,16 +435,24 @@
         startTimer();
     }
 
-    // ── Kontrol tombol prev/next ──────────────────────────────────
-    // (tombol dihapus — slideshow berjalan otomatis)
-
     // ── Pause saat hover ─────────────────────────────────────────
-    slider.addEventListener('mouseenter', () => clearInterval(timer));
-    slider.addEventListener('mouseleave', () => startTimer());
+    slider.addEventListener('mouseenter', () => {
+        clearInterval(timer);
+        if (progressEl) {
+            const computedWidth = window.getComputedStyle(progressEl).width;
+            progressEl.style.transition = 'none';
+            progressEl.style.width = computedWidth;
+        }
+    });
+
+    slider.addEventListener('mouseleave', () => {
+        startTimer();
+        startProgress();
+    });
 
     // ── Init ─────────────────────────────────────────────────────
     buildDots();
-    showSlide(0, 1);
+    showSlide(0, 1, true);
     startTimer();
 })();
 </script>

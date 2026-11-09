@@ -14,9 +14,9 @@
                 Kelola pesanan pelanggan, nomor resi pengiriman, serta konfirmasi semi-otomatis via WhatsApp.
             </p>
         </div>
-        <div class="flex items-center gap-space-sm flex-shrink-0">
+        <div class="flex items-center gap-space-sm flex-shrink-0 w-full sm:w-auto">
             <a href="{{ route('admin.orders.create') }}"
-               class="inline-flex items-center justify-center gap-space-xs px-space-md bg-surface-container-lowest hover:bg-surface text-primary font-label-lg text-label-lg rounded shadow-sm transition-colors h-10">
+               class="w-full sm:w-auto inline-flex items-center justify-center gap-space-xs px-space-md bg-surface-container-lowest hover:bg-surface text-primary font-label-lg text-label-lg rounded-xl sm:rounded shadow-sm transition-colors h-10">
                 <span class="material-symbols-outlined text-[20px] text-secondary">add_circle</span>
                 <span>Input Pesanan Baru</span>
             </a>
@@ -123,15 +123,15 @@
         </div>
 
         {{-- Tombol Aksi --}}
-        <div class="flex gap-space-sm flex-shrink-0">
+        <div class="flex gap-space-sm flex-shrink-0 w-full sm:w-auto">
             <button type="submit"
-                    class="inline-flex items-center gap-1 px-space-lg py-2.5 bg-primary hover:bg-secondary text-on-primary text-sm font-bold tracking-wider rounded-lg transition-colors shadow-sm">
+                    class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1 px-space-lg py-2.5 bg-primary hover:bg-secondary text-on-primary text-sm font-bold tracking-wider rounded-lg transition-colors shadow-sm">
                 <span class="material-symbols-outlined text-[18px]">search</span>
                 Cari
             </button>
             @if(request('search') || request('courier') || request('status'))
             <a href="{{ route('admin.orders.index') }}"
-               class="inline-flex items-center gap-1 px-space-md py-2.5 bg-surface-container hover:bg-surface-container-high text-on-surface text-sm font-semibold rounded-lg transition-colors">
+               class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1 px-space-md py-2.5 bg-surface-container hover:bg-surface-container-high text-on-surface text-sm font-semibold rounded-lg transition-colors">
                 <span class="material-symbols-outlined text-[18px]">close</span>
                 Reset
             </a>

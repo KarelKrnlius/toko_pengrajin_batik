@@ -14,11 +14,11 @@
                 Pantau pendapatan masuk (selesai diterima), nominal tertunda (pending), serta rekap penjualan kain batik siap ekspor ke Excel.
             </p>
         </div>
-        <div class="flex items-center gap-space-sm flex-shrink-0">
+        <div class="flex items-center gap-space-sm flex-shrink-0 w-full sm:w-auto">
             <button type="button"
                id="exportBtn"
                onclick="downloadFinanceExcel()"
-               class="inline-flex items-center justify-center gap-space-xs px-space-md bg-emerald-700 hover:bg-emerald-800 text-white font-label-lg text-label-lg rounded shadow-sm transition-all h-10 cursor-pointer">
+               class="w-full sm:w-auto inline-flex items-center justify-center gap-space-xs px-space-md bg-emerald-700 hover:bg-emerald-800 text-white font-label-lg text-label-lg rounded-xl sm:rounded shadow-sm transition-all h-10 cursor-pointer">
                 <span class="material-symbols-outlined text-[20px]">table_view</span>
                 <span>Download Rekap Excel (.xls)</span>
             </button>
@@ -136,9 +136,9 @@
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="No. pesanan, nama, motif..."
                            class="w-full text-xs py-2 px-3 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface focus:outline-none focus:border-secondary transition">
                 </div>
-                <button type="submit" class="h-9 px-4 mt-auto rounded-xl bg-primary hover:bg-secondary text-on-primary text-xs font-bold transition flex items-center justify-center gap-1 shadow-sm flex-shrink-0" title="Terapkan Filter">
+                <button type="submit" class="h-9 px-3 sm:px-4 mt-auto rounded-xl bg-primary hover:bg-secondary text-on-primary text-xs font-bold transition flex items-center justify-center gap-1 shadow-sm flex-shrink-0" title="Terapkan Filter">
                     <span class="material-symbols-outlined text-[16px]">check_circle</span>
-                    <span class="hidden sm:inline">Terapkan</span>
+                    <span>Terapkan</span>
                 </button>
                 @if(request()->hasAny(['start_date', 'end_date', 'finance_status', 'search']))
                 <a href="{{ route('admin.finance.index') }}" class="h-9 px-3 mt-auto rounded-xl border border-outline-variant hover:bg-surface-container text-on-surface-variant text-xs font-bold transition flex items-center justify-center flex-shrink-0" title="Reset Filter">

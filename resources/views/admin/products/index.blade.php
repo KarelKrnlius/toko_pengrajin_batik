@@ -97,24 +97,25 @@
                 &bull; Total <span class="font-semibold">{{ $products->total() }}</span> produk
             </p>
         </div>
-        <div class="flex items-center gap-space-sm flex-shrink-0">
+        <div class="flex items-center gap-2 sm:gap-space-sm flex-wrap sm:flex-nowrap flex-shrink-0 w-full sm:w-auto">
             <button type="button"
                     onclick="document.getElementById('modalKategori').classList.remove('hidden'); loadCategories()"
-                    class="inline-flex items-center justify-center gap-space-xs px-space-md bg-on-primary/10 hover:bg-on-primary/20 text-on-primary font-label-lg text-label-lg rounded transition-colors h-10 shadow-none">
-                <span class="material-symbols-outlined text-[20px]">category</span>
-                <span class="hidden sm:inline">Kategori</span>
+                    class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-space-xs px-3 sm:px-space-md bg-on-primary/10 hover:bg-on-primary/20 text-on-primary font-label-lg text-xs sm:text-label-lg rounded-xl sm:rounded transition-colors h-10 shadow-none">
+                <span class="material-symbols-outlined text-[18px] sm:text-[20px]">category</span>
+                <span>Kategori</span>
             </button>
             <button type="button"
                     onclick="document.getElementById('modalTambah').classList.remove('hidden')"
-                    class="inline-flex items-center justify-center gap-space-xs px-space-md bg-surface-container-lowest hover:bg-surface text-primary font-label-lg text-label-lg rounded shadow-sm transition-colors h-10">
-                <span class="material-symbols-outlined text-[20px] text-secondary">add_circle</span>
-                <span class="hidden sm:inline">Tambah Produk</span>
+                    class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-space-xs px-3 sm:px-space-md bg-surface-container-lowest hover:bg-surface text-primary font-label-lg text-xs sm:text-label-lg rounded-xl sm:rounded shadow-sm transition-colors h-10">
+                <span class="material-symbols-outlined text-[18px] sm:text-[20px] text-secondary">add_circle</span>
+                <span>Tambah Produk</span>
             </button>
             <form action="{{ route('logout') }}" method="POST" class="inline-flex items-center m-0 p-0">
                 @csrf
                 <button type="submit"
-                        class="inline-flex items-center justify-center gap-space-xs px-space-md bg-on-primary/10 hover:bg-on-primary/20 text-on-primary font-label-lg text-label-lg rounded transition-colors h-10 shadow-none">
-                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                        class="inline-flex items-center justify-center gap-space-xs px-3 sm:px-space-md bg-on-primary/10 hover:bg-on-primary/20 text-on-primary font-label-lg text-xs sm:text-label-lg rounded-xl sm:rounded transition-colors h-10 shadow-none"
+                        title="Keluar">
+                    <span class="material-symbols-outlined text-[18px] sm:text-[20px]">logout</span>
                     <span class="hidden sm:inline">Keluar</span>
                 </button>
             </form>
@@ -190,15 +191,15 @@
         </div>
 
         {{-- Tombol --}}
-        <div class="flex gap-space-sm flex-shrink-0">
+        <div class="flex gap-space-sm flex-shrink-0 w-full sm:w-auto">
             <button type="submit"
-                    class="inline-flex items-center gap-1 px-space-lg py-2.5 bg-primary hover:bg-secondary text-on-primary text-sm font-bold tracking-wider rounded-lg transition-colors shadow-sm">
+                    class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1 px-space-lg py-2.5 bg-primary hover:bg-secondary text-on-primary text-sm font-bold tracking-wider rounded-lg transition-colors shadow-sm">
                 <span class="material-symbols-outlined text-[18px]">search</span>
                 Cari
             </button>
             @if(request()->hasAny(['search','category','sort']) && request('sort','terbaru') !== 'terbaru' || request('search') || request('category'))
             <a href="{{ route('admin.products.index') }}"
-               class="inline-flex items-center gap-1 px-space-md py-2.5 bg-surface-container hover:bg-surface-container-high text-on-surface text-sm font-semibold rounded-lg transition-colors">
+               class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1 px-space-md py-2.5 bg-surface-container hover:bg-surface-container-high text-on-surface text-sm font-semibold rounded-lg transition-colors">
                 <span class="material-symbols-outlined text-[18px]">close</span>
                 Reset
             </a>
