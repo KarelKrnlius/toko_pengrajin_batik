@@ -7,6 +7,8 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\Admin\OrderController;
 use Illuminate\Support\Facades\Route;
 
 // ── Halaman Publik ──────────────────────────────────────────────
@@ -45,6 +47,10 @@ Route::middleware('auth')->group(function () {
     // Favorit
     Route::get('/favorit',                     [FavoriteController::class, 'index'])->name('favorites.index');
     Route::post('/favorit/{productId}/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle')->whereNumber('productId');
+
+    // Pesanan Saya (User Order History)
+    Route::get('/pesanan',                     [\App\Http\Controllers\User\OrderController::class, 'index'])        ->name('user.orders.index');
+    Route::patch('/pesanan/{id}/terima',       [\App\Http\Controllers\User\OrderController::class, 'completeOrder'])->name('user.orders.complete');
 });
 
 // ── Admin Panel (wajib login + role admin) ─────────────────────
@@ -58,4 +64,21 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'is_admin'])->group(
     Route::get('/categories',            [CategoryController::class, 'index'])  ->name('categories.index');
     Route::post('/categories',           [CategoryController::class, 'store'])  ->name('categories.store');
     Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+
+    // Manajemen User
+    Route::get('/users',                    [UserController::class, 'index'])          ->name('users.index');
+    Route::post('/users',                   [UserController::class, 'store'])          ->name('users.store');
+    Route::put('/users/{user}',             [UserController::class, 'update'])         ->name('users.update');
+    Route::patch('/users/{user}/toggle',    [UserController::class, 'toggleStatus'])   ->name('users.toggle');
+    Route::patch('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.resetPassword');
+    Route::delete('/users/{user}',          [UserController::class, 'destroy'])        ->name('users.destroy');
+    Route::delete('/users-bulk',            [UserController::class, 'destroyMultiple'])->name('users.destroyMultiple');
+
+    // Manajemen Pesanan (Order Management)
+    Route::get('/orders',                       [OrderController::class, 'index'])         ->name('orders.index');
+    Route::get('/orders/create',                [OrderController::class, 'create'])        ->name('orders.create');
+    Route::post('/orders',                      [OrderController::class, 'store'])         ->name('orders.store');
+    Route::get('/orders/users/{id}',            [OrderController::class, 'getUserDetails'])->name('orders.user-details');
+    Route::patch('/orders/{order}/status',      [OrderController::class, 'updateStatus'])  ->name('orders.update-status');
+    Route::delete('/orders/{order}',            [OrderController::class, 'destroy'])       ->name('orders.destroy');
 });

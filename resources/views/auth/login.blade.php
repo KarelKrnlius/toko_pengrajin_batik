@@ -110,7 +110,15 @@
                 </div>
                 @endif
 
-                {{-- Success message (setelah logout) --}}
+                {{-- Unauthorized redirect message --}}
+                @if(session('error'))
+                <div class="flex items-center gap-space-sm p-space-md bg-error-container rounded-xl mb-space-lg">
+                    <span class="material-symbols-outlined text-error text-[20px] flex-shrink-0">lock</span>
+                    <p class="text-sm text-on-surface">{{ session('error') }}</p>
+                </div>
+                @endif
+
+                {{-- Success message (setelah logout / register) --}}
                 @if(session('success'))
                 <div class="flex items-center gap-space-sm p-space-md bg-surface-container rounded-xl mb-space-lg border border-outline-variant">
                     <span class="material-symbols-outlined text-[20px] flex-shrink-0" style="color:#386a20">check_circle</span>
@@ -129,7 +137,7 @@
                         <div class="relative">
                             <span class="material-symbols-outlined absolute left-space-md top-1/2 -translate-y-1/2 text-outline text-[20px]">mail</span>
                             <input type="email" name="email" value="{{ old('email') }}" required autofocus
-                                   placeholder="admin@juraganbatik.com"
+                                   placeholder="email@contoh.com"
                                    class="w-full pl-11 pr-space-md py-3 bg-surface-container-low border border-outline-variant rounded-xl text-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent transition @error('email') border-error ring-1 ring-error @enderror"/>
                         </div>
                         @error('email')
@@ -193,22 +201,6 @@
                             Kembali ke Beranda
                         </a>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- Info akun demo --}}
-        <div class="mt-space-lg p-space-md bg-surface-container rounded-xl border border-outline-variant">
-            <div class="flex items-start gap-space-sm">
-                <span class="material-symbols-outlined text-secondary text-[18px] flex-shrink-0 mt-0.5">info</span>
-                <div>
-                    <p class="text-xs font-bold text-primary tracking-wider uppercase mb-1">Akun Admin</p>
-                    <p class="text-xs text-on-surface-variant">
-                        Email: <span class="font-mono font-semibold text-on-surface">admin@juraganbatik.com</span>
-                    </p>
-                    <p class="text-xs text-on-surface-variant">
-                        Kata Sandi: <span class="font-mono font-semibold text-on-surface">password</span>
-                    </p>
                 </div>
             </div>
         </div>

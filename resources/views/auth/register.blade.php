@@ -123,6 +123,12 @@
                                    placeholder="email@contoh.com"
                                    class="w-full pl-11 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl text-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent transition @error('email') border-error ring-1 ring-error @enderror"/>
                         </div>
+                        @error('email')
+                        <p class="text-xs text-error font-semibold flex items-center gap-1 mt-0.5">
+                            <span class="material-symbols-outlined text-[15px]">error</span>
+                            <span>{{ $message }}</span>
+                        </p>
+                        @enderror
                     </div>
 
                     {{-- Password --}}
@@ -182,17 +188,6 @@
                             Kembali ke Beranda
                         </a>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- Info --}}
-        <div class="mt-4 p-3 bg-surface-container rounded-xl border border-outline-variant">
-            <div class="flex items-start gap-2">
-                <span class="material-symbols-outlined text-secondary text-[18px] flex-shrink-0 mt-0.5">info</span>
-                <div>
-                    <p class="text-xs font-bold text-primary tracking-wider uppercase mb-0.5">Akun Pelanggan</p>
-                    <p class="text-xs text-on-surface-variant">Dengan mendaftar Anda bisa berbelanja, menambahkan keranjang, dan menyimpan produk favorit.</p>
                 </div>
             </div>
         </div>

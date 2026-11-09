@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Portal Kurator — Manajemen Produk')
+@section('title', 'Manajemen Inventaris Produk — Juragan Batik')
 
 @push('styles')
 <style>

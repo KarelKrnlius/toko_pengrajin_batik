@@ -220,7 +220,7 @@
                         <span class="material-symbols-outlined text-[16px] text-outline">expand_more</span>
                     </button>
                     <div id="userDropdown"
-                         class="hidden absolute right-0 top-full mt-2 w-56 bg-surface-container-lowest rounded-xl shadow-xl border border-outline-variant overflow-hidden z-50">
+                         class="hidden absolute right-0 top-full mt-2 w-64 bg-surface-container-lowest rounded-xl shadow-xl border border-outline-variant overflow-hidden z-50">
                         <div class="px-space-md py-space-sm border-b border-outline-variant flex items-center gap-2.5">
                             <div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary text-on-primary flex items-center justify-center font-serif font-bold text-xs flex-shrink-0 select-none">
                                 {{ Auth::user()->initials }}
@@ -233,19 +233,50 @@
                         </div>
 
                         @if(Auth::user()->isAdmin())
-                            {{-- Menu Admin --}}
+                            {{-- Khusus Menu Admin dengan Batas Garis --}}
+                            <div class="px-space-md pt-2 pb-1 text-[10px] font-bold text-secondary uppercase tracking-widest flex items-center gap-1.5 bg-surface-container-low/60 border-b border-outline-variant/40">
+                                <span class="material-symbols-outlined text-[13px]">admin_panel_settings</span>
+                                <span>Menu Administrator</span>
+                            </div>
                             <a href="{{ route('admin.products.index') }}"
-                               class="flex items-center gap-space-sm px-space-md py-space-sm hover:bg-surface-container transition-colors text-on-surface font-label-md text-label-md">
-                                <span class="material-symbols-outlined text-secondary text-[18px]">shield_person</span>
-                                <span>Portal Kurator</span>
+                                class="flex items-center gap-space-sm px-space-md py-space-sm hover:bg-surface-container transition-colors text-on-surface font-label-md text-label-md">
+                                <span class="material-symbols-outlined text-secondary text-[18px]">inventory_2</span>
+                                <span>Manajemen Inventaris Produk</span>
+                            </a>
+                            <a href="{{ route('admin.orders.index') }}"
+                                class="flex items-center gap-space-sm px-space-md py-space-sm hover:bg-surface-container transition-colors text-on-surface font-label-md text-label-md">
+                                <span class="material-symbols-outlined text-secondary text-[18px]">receipt_long</span>
+                                <span>Manajemen Pesanan</span>
+                            </a>
+                            <a href="{{ route('admin.users.index', ['role' => 'user']) }}"
+                                class="flex items-center gap-space-sm px-space-md py-space-sm hover:bg-surface-container transition-colors text-on-surface font-label-md text-label-md">
+                                <span class="material-symbols-outlined text-secondary text-[18px]">group</span>
+                                <span>Manajemen User</span>
+                            </a>
+                            <a href="{{ route('admin.users.index', ['role' => 'admin']) }}"
+                                class="flex items-center gap-space-sm px-space-md py-space-sm hover:bg-surface-container transition-colors text-on-surface font-label-md text-label-md border-b-2 border-outline-variant">
+                                <span class="material-symbols-outlined text-secondary text-[18px]">manage_accounts</span>
+                                <span>Manajemen Admin</span>
                             </a>
                         @endif
 
                         {{-- Menu untuk semua user (termasuk Admin) --}}
+                        <div class="px-space-md pt-2 pb-1 text-[10px] font-bold text-outline uppercase tracking-widest">
+                            <span>Akun Saya</span>
+                        </div>
                         <a href="{{ route('profile.show') }}"
                            class="flex items-center gap-space-sm px-space-md py-space-sm hover:bg-surface-container transition-colors text-on-surface font-label-md text-label-md">
                             <span class="material-symbols-outlined text-secondary text-[18px]">account_circle</span>
                             <span>Profil Saya</span>
+                        </a>
+                        <a href="{{ route('user.orders.index') }}"
+                           class="flex items-center gap-space-sm px-space-md py-space-sm hover:bg-surface-container transition-colors text-on-surface font-label-md text-label-md">
+                            <span class="material-symbols-outlined text-secondary text-[18px]">receipt_long</span>
+                            <span>Pesanan Saya</span>
+                            @php $activeOrdersCount = \App\Models\Order::where('user_id', Auth::id())->whereIn('status', ['pending', 'shipped'])->count(); @endphp
+                            @if($activeOrdersCount > 0)
+                                <span class="ml-auto bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">{{ $activeOrdersCount }}</span>
+                            @endif
                         </a>
                         <a href="{{ route('cart.index') }}"
                            class="flex items-center gap-space-sm px-space-md py-space-sm hover:bg-surface-container transition-colors text-on-surface font-label-md text-label-md">
@@ -306,12 +337,31 @@
         <div class="border-t border-surface-container pt-space-sm mt-space-xs">
             @auth
                 @if(Auth::user()->isAdmin())
+                    <div class="px-space-xs pt-1 pb-1 text-[10px] font-bold text-secondary uppercase tracking-widest flex items-center gap-1 border-b border-outline-variant/40">
+                        <span class="material-symbols-outlined text-[14px]">admin_panel_settings</span>
+                        <span>Menu Administrator</span>
+                    </div>
                     <a href="{{ route('admin.products.index') }}" class="flex items-center gap-space-xs font-label-lg text-label-lg text-secondary py-space-xs">
-                        <span class="material-symbols-outlined text-[16px]">shield_person</span> Portal Kurator
+                        <span class="material-symbols-outlined text-[16px]">inventory_2</span> Manajemen Inventaris Produk
+                    </a>
+                    <a href="{{ route('admin.orders.index') }}" class="flex items-center gap-space-xs font-label-lg text-label-lg text-secondary py-space-xs">
+                        <span class="material-symbols-outlined text-[16px]">receipt_long</span> Manajemen Pesanan
+                    </a>
+                    <a href="{{ route('admin.users.index', ['role' => 'user']) }}" class="flex items-center gap-space-xs font-label-lg text-label-lg text-secondary py-space-xs">
+                        <span class="material-symbols-outlined text-[16px]">group</span> Manajemen User
+                    </a>
+                    <a href="{{ route('admin.users.index', ['role' => 'admin']) }}" class="flex items-center gap-space-xs font-label-lg text-label-lg text-secondary py-space-xs pb-2 border-b-2 border-outline-variant">
+                        <span class="material-symbols-outlined text-[16px]">manage_accounts</span> Manajemen Admin
                     </a>
                 @endif
+                <div class="px-space-xs pt-2 text-[10px] font-bold text-outline uppercase tracking-widest">
+                    <span>Akun Saya</span>
+                </div>
                 <a href="{{ route('profile.show') }}" class="flex items-center gap-space-xs font-label-lg text-label-lg text-on-surface py-space-xs">
                     <span class="material-symbols-outlined text-[16px]">account_circle</span> Profil Saya
+                </a>
+                <a href="{{ route('user.orders.index') }}" class="flex items-center gap-space-xs font-label-lg text-label-lg text-on-surface py-space-xs">
+                    <span class="material-symbols-outlined text-[16px]">receipt_long</span> Pesanan Saya
                 </a>
                 <a href="{{ route('cart.index') }}" class="flex items-center gap-space-xs font-label-lg text-label-lg text-on-surface py-space-xs">
                     <span class="material-symbols-outlined text-[16px]">shopping_bag</span> Keranjang

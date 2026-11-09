@@ -1,58 +1,206 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Juragan Batik — Surakarta Est. 1928
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Website toko batik online yang menjual koleksi batik tulis dan cap autentik dari Solo dan Yogyakarta. Dibangun dengan Laravel 13 dan Tailwind CSS.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Tentang Proyek
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Juragan Batik adalah platform e-commerce yang fokus pada penjualan batik premium. Pembeli bisa melihat katalog produk, menyimpan favorit, dan melakukan pemesanan langsung via WhatsApp. Admin atau kurator bisa mengelola produk dan kategori langsung dari portal yang sudah disediakan.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Fitur Utama
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Untuk Pengunjung / Pembeli
+- **Beranda** — Hero slideshow otomatis dari foto produk katalog, berputar setiap 5 detik
+- **Katalog Batik** — Daftar produk lengkap dengan fitur pencarian dan filter
+  - Filter berdasarkan kategori (dropdown buka/tutup, ada search kategori)
+  - Filter berdasarkan rentang harga (double range slider)
+  - Sortir: Terbaru, Terlama, Harga Terendah, Harga Tertinggi, A-Z, Z-A
+- **Detail Produk** — Foto produk besar, deskripsi, stok, sertifikasi, dan tombol beli via WhatsApp
+- **Filosofi Motif** — Halaman cerita dan filosofi batik Juragan Batik
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Untuk Akun (Wajib Login)
+- **Keranjang Belanja** — Tambah, ubah jumlah, hapus produk, lalu checkout via WhatsApp
+- **Favorit** — Simpan produk yang disukai, lihat di halaman tersendiri
+- **Profil** — Edit nama, email, nomor HP, alamat, dan ganti password
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+### Portal Kurator / Admin
+- **Kelola Produk** — Tambah, edit, hapus produk; upload dan crop foto produk (rasio 3:4)
+- **Kelola Kategori** — Tambah, hapus kategori; sortir dan pagination otomatis (10 per halaman)
+- **Filter & Sortir** — Filter produk berdasarkan kategori dan sortir di halaman admin
 
-## Agentic Development
+---
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Teknologi yang Digunakan
 
-```bash
-composer require laravel/boost --dev
+| Bagian | Teknologi |
+|---|---|
+| Backend | PHP 8.3+, Laravel 13 |
+| Frontend | Blade Template, Tailwind CSS v4 |
+| Bundler | Vite 8 |
+| Database | SQLite (default) / MySQL |
+| Autentikasi | Laravel bawaan (session-based) |
+| Storage | Laravel Storage (lokal) |
+| Pemesanan | WhatsApp API (wa.me link) |
 
-php artisan boost:install
+---
+
+## Struktur Halaman
+
+```
+/                   → Beranda
+/katalog            → Katalog produk (dengan filter & search)
+/katalog/{id}       → Detail produk
+/cerita-kami        → Halaman tentang & filosofi
+
+/login              → Login
+/register           → Daftar akun
+
+/profil             → Halaman profil (login)
+/keranjang          → Keranjang belanja (login)
+/favorit            → Daftar favorit (login)
+
+/admin/products     → Portal kurator — kelola produk (admin)
+/admin/categories   → Portal kurator — kelola kategori (admin)
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+---
 
-## Contributing
+## Cara Menjalankan
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Kebutuhan Awal
+- PHP 8.3 atau lebih baru
+- Composer
+- Node.js dan npm
 
-## Code of Conduct
+### Langkah Install
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+# 1. Clone repository
+git clone <url-repo> juragan-batik
+cd juragan-batik
 
-## Security Vulnerabilities
+# 2. Install dependensi PHP
+composer install
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# 3. Salin file environment
+cp .env.example .env
 
-## License
+# 4. Generate app key
+php artisan key:generate
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# 5. Jalankan migrasi database
+php artisan migrate
+
+# 6. Install dependensi JS
+npm install
+
+# 7. Build aset frontend
+npm run build
+```
+
+Atau bisa pakai satu perintah (dari `composer.json`):
+
+```bash
+composer run setup
+```
+
+### Menjalankan Server Lokal
+
+```bash
+# Jalankan PHP development server
+php artisan serve
+
+# Atau jalankan semua sekaligus (server + vite)
+composer run dev
+```
+
+Buka di browser: `http://localhost:8000`
+
+---
+
+## Konfigurasi .env
+
+Beberapa hal yang perlu disesuaikan di file `.env`:
+
+```env
+APP_NAME="Juragan Batik"
+APP_URL=http://localhost:8000
+
+# Database (default SQLite)
+DB_CONNECTION=sqlite
+
+# Jika pakai MySQL
+# DB_CONNECTION=mysql
+# DB_HOST=127.0.0.1
+# DB_PORT=3306
+# DB_DATABASE=juragan_batik
+# DB_USERNAME=root
+# DB_PASSWORD=
+
+# Nomor WhatsApp untuk pemesanan
+# (ganti di controller jika perlu)
+```
+
+---
+
+## Akun Default
+
+Setelah migrasi, buat akun admin lewat tinker atau seeder:
+
+```bash
+php artisan tinker
+```
+
+```php
+// Buat akun admin
+App\Models\User::create([
+    'name'     => 'Admin',
+    'email'    => 'admin@example.com',
+    'password' => bcrypt('password'),
+    'role'     => 'admin',
+]);
+```
+
+---
+
+## Struktur Folder Penting
+
+```
+app/
+├── Http/Controllers/
+│   ├── AuthController.php        # Login & register
+│   ├── CartController.php        # Keranjang belanja
+│   ├── CategoryController.php    # Kelola kategori (admin)
+│   ├── FavoriteController.php    # Favorit produk
+│   ├── PageController.php        # Halaman publik (beranda, katalog, dll)
+│   ├── ProductController.php     # Kelola produk (admin)
+│   └── ProfileController.php     # Profil pengguna
+└── Models/
+    ├── Cart.php
+    ├── Category.php
+    ├── Favorite.php
+    ├── Product.php
+    └── User.php
+
+resources/views/
+├── layouts/app.blade.php         # Layout utama (navbar, footer)
+├── home.blade.php                # Beranda
+├── catalog.blade.php             # Katalog produk
+├── detail.blade.php              # Detail produk
+├── about.blade.php               # Halaman cerita
+├── auth/                         # Login & register
+├── admin/                        # Portal kurator
+└── profile/                      # Halaman profil
+
+public/
+└── images/logo.png               # Logo & favicon
+```
+
+---
+
+## Lisensi
+
+Proyek ini dibuat untuk keperluan toko Juragan Batik Surakarta. Hak cipta sepenuhnya milik pemilik usaha.
