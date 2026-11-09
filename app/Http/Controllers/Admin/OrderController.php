@@ -24,13 +24,26 @@ class OrderController extends Controller
         $query = Order::with(['user', 'items.product'])->latest();
 
         // Filter status
-        if ($request->filled('status') && in_array($request->status, ['pending', 'shipped', 'completed'])) {
-            $query->where('status', $request->status);
+        if ($request->filled('status')) {
+            if ($request->status === 'ready_pickup') {
+                $query->where('status', 'shipped')->where('shipping_courier', 'Ambil Mandiri');
+            } elseif ($request->status === 'shipped') {
+                $query->where('status', 'shipped')->where('shipping_courier', '!=', 'Ambil Mandiri');
+            } elseif (in_array($request->status, ['pending', 'completed'])) {
+                $query->where('status', $request->status);
+            }
         }
 
         // Filter kurir
         if ($request->filled('courier')) {
-            $query->where('shipping_courier', $request->courier);
+            $courier = $request->courier;
+            if ($courier === 'JNE') {
+                $query->whereIn('shipping_courier', ['JNE', 'JNE Express']);
+            } elseif ($courier === 'J&T Express') {
+                $query->whereIn('shipping_courier', ['J&T Express', 'J&T']);
+            } else {
+                $query->where('shipping_courier', $courier);
+            }
         }
 
         // Pencarian (Nomor Pesanan, Nama Pelanggan, Resi, atau Telepon)
@@ -49,10 +62,11 @@ class OrderController extends Controller
 
         // Hitung ringkasan status pesanan
         $counts = [
-            'all'       => Order::count(),
-            'pending'   => Order::where('status', 'pending')->count(),
-            'shipped'   => Order::where('status', 'shipped')->count(),
-            'completed' => Order::where('status', 'completed')->count(),
+            'all'          => Order::count(),
+            'pending'      => Order::where('status', 'pending')->count(),
+            'shipped'      => Order::where('status', 'shipped')->where('shipping_courier', '!=', 'Ambil Mandiri')->count(),
+            'ready_pickup' => Order::where('status', 'shipped')->where('shipping_courier', 'Ambil Mandiri')->count(),
+            'completed'    => Order::where('status', 'completed')->count(),
         ];
 
         $orders = $query->paginate(10)->withQueryString();
@@ -99,7 +113,7 @@ class OrderController extends Controller
             'customer_phone'     => 'required|string|max:25',
             'customer_address'   => 'required|string|max:1000',
             'payment_method'     => 'required|in:transfer_bank,qris',
-            'shipping_courier'   => 'required|in:JNE Express,J&T,Ambil Mandiri',
+            'shipping_courier'   => 'required|in:JNE,J&T Express,Ambil Mandiri,JNE Express,J&T',
             'shipping_cost'      => 'required|numeric|min:0',
             'tracking_number'    => $isAmbilMandiri ? 'nullable|string|max:100' : 'required|string|max:100',
             'status'             => 'required|in:pending,shipped,completed',
@@ -117,7 +131,7 @@ class OrderController extends Controller
             'payment_method.required'   => 'Pilih metode pembayaran.',
             'payment_method.in'         => 'Metode pembayaran hanya Transfer Bank atau QRIS.',
             'shipping_courier.required' => 'Pilih ekspedisi kurir.',
-            'shipping_courier.in'       => 'Ekspedisi kurir hanya JNE Express, J&T, atau Ambil Mandiri.',
+            'shipping_courier.in'       => 'Ekspedisi kurir hanya JNE, J&T Express, atau Ambil Mandiri.',
             'tracking_number.required'  => 'Nomor resi wajib diisi untuk pengiriman kurir ekspedisi.',
             'items.required'            => 'Minimal pilih satu produk untuk dipesan.',
             'items.min'                 => 'Minimal pilih satu produk untuk dipesan.',
@@ -129,10 +143,12 @@ class OrderController extends Controller
         $order = null;
 
         DB::transaction(function () use ($validated, $isAmbilMandiri, &$order) {
-            // Generate nomor pesanan unik: JB-YYYYMMDD-XXXX
+            // Generate nomor pesanan unik: JB-YYYYMMDD-XXXX (dijamin unik & acak harian)
             $datePart = now()->format('Ymd');
-            $randomPart = strtoupper(Str::random(4));
-            $orderNumber = "JB-{$datePart}-{$randomPart}";
+            do {
+                $randomPart = strtoupper(Str::random(4));
+                $orderNumber = "JB-{$datePart}-{$randomPart}";
+            } while (Order::where('order_number', $orderNumber)->exists());
 
             // Validasi & Kunci stok produk untuk pencegahan race condition
             $totalProductPrice = 0;
@@ -194,7 +210,7 @@ class OrderController extends Controller
         });
 
         return redirect()->route('admin.orders.index')
-            ->with('success', "Pesanan #{$order->order_number} berhasil dibuat dan stok produk telah diperbarui.");
+            ->with('success', "Pesanan {$order->order_number} berhasil dibuat dan stok produk telah diperbarui.");
     }
 
     /**
@@ -228,14 +244,20 @@ class OrderController extends Controller
      */
     public function updateStatus(Request $request, Order $order): RedirectResponse
     {
+        $isAmbilMandiri = $order->shipping_courier === 'Ambil Mandiri';
+
         $validated = $request->validate([
             'status'          => 'required|in:pending,shipped,completed',
-            'tracking_number' => 'nullable|string|max:100',
+            'tracking_number' => $isAmbilMandiri ? 'nullable' : 'nullable|string|max:100',
         ]);
+
+        if ($isAmbilMandiri) {
+            $validated['tracking_number'] = null;
+        }
 
         $order->update($validated);
 
-        return back()->with('success', "Status pesanan #{$order->order_number} berhasil diperbarui.");
+        return back()->with('success', "Status pesanan {$order->order_number} berhasil diperbarui.");
     }
 
     /**
@@ -254,6 +276,6 @@ class OrderController extends Controller
             $order->delete();
         });
 
-        return back()->with('success', "Pesanan #{$order->order_number} berhasil dihapus dan stok produk telah dikembalikan.");
+        return back()->with('success', "Pesanan {$order->order_number} berhasil dihapus dan stok produk telah dikembalikan.");
     }
 }

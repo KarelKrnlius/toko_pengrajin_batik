@@ -66,6 +66,14 @@
                 {{ $counts['shipped'] }}
             </span>
         </a>
+        <a href="{{ route('admin.orders.index', ['status' => 'ready_pickup']) }}"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold tracking-wider uppercase transition-colors shadow-sm {{ request('status') === 'ready_pickup' ? 'bg-purple-700 text-white' : 'bg-surface-container hover:bg-surface-container-high text-on-surface' }}">
+            <span class="material-symbols-outlined text-[14px]">storefront</span>
+            <span>Siap Diambil</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] {{ request('status') === 'ready_pickup' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-900 font-bold' }}">
+                {{ $counts['ready_pickup'] }}
+            </span>
+        </a>
         <a href="{{ route('admin.orders.index', ['status' => 'completed']) }}"
            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold tracking-wider uppercase transition-colors shadow-sm {{ request('status') === 'completed' ? 'bg-green-700 text-white' : 'bg-surface-container hover:bg-surface-container-high text-on-surface' }}">
             <span class="material-symbols-outlined text-[14px]">task_alt</span>
@@ -99,8 +107,8 @@
             <select name="courier" onchange="this.form.submit()"
                     class="pl-9 pr-8 py-2.5 bg-surface-container-low border border-outline-variant rounded-lg text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary appearance-none cursor-pointer min-w-[170px]">
                 <option value="">Semua Kurir</option>
-                <option value="JNE Express" {{ request('courier') === 'JNE Express' ? 'selected' : '' }}>JNE Express</option>
-                <option value="J&T" {{ request('courier') === 'J&T' ? 'selected' : '' }}>J&T</option>
+                <option value="JNE" {{ request('courier') === 'JNE' ? 'selected' : '' }}>JNE</option>
+                <option value="J&T Express" {{ request('courier') === 'J&T Express' ? 'selected' : '' }}>J&T Express</option>
                 <option value="Ambil Mandiri" {{ request('courier') === 'Ambil Mandiri' ? 'selected' : '' }}>Ambil Mandiri</option>
             </select>
             <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
@@ -150,21 +158,33 @@
                         {{-- No. Pesanan & Tanggal --}}
                         <td class="px-4 py-3.5">
                             <span class="font-mono font-bold text-primary block leading-tight">
-                                #{{ $order->order_number }}
+                                {{ $order->order_number }}
                             </span>
-                            <span class="text-xs text-on-surface-variant block mt-1">
+                            <span class="text-xs text-on-surface-variant block mt-1 device-time" data-utc="{{ $order->created_at->toISOString() }}">
                                 {{ $order->created_at->translatedFormat('d M Y, H:i') }}
                             </span>
                         </td>
 
-                        {{-- Pelanggan --}}
+                        {{-- Pelanggan & Alamat --}}
                         <td class="px-4 py-3.5">
-                            <p class="font-semibold text-primary leading-tight">{{ $order->user?->name ?? 'Pelanggan Tamu' }}</p>
+                            <p class="font-semibold text-primary leading-tight">{{ $order->customer_name ?: ($order->user?->name ?? 'Pelanggan Tamu') }}</p>
                             <p class="text-xs text-on-surface-variant mt-0.5 truncate">{{ $order->user?->email }}</p>
                             <p class="text-xs text-secondary mt-0.5 flex items-center gap-1">
                                 <span class="material-symbols-outlined text-[13px]">phone</span>
                                 {{ $order->customer_phone ?: ($order->user?->phone ?? '—') }}
                             </p>
+                            {{-- Alamat (Klik untuk lihat full, sama seperti manajemen user) --}}
+                            @if($order->customer_address)
+                                <button type="button"
+                                        onclick="showAlamat({{ json_encode($order->customer_name ?: ($order->user?->name ?? 'Pelanggan')) }}, {{ json_encode($order->customer_address) }})"
+                                        class="text-left text-xs text-secondary hover:text-primary transition-colors flex items-center gap-1 group mt-1.5"
+                                        title="Klik untuk lihat alamat lengkap">
+                                    <span class="material-symbols-outlined text-[14px] text-outline group-hover:text-secondary flex-shrink-0">home_pin</span>
+                                    <span class="underline decoration-dotted underline-offset-2 truncate max-w-[170px]">{{ Str::limit($order->customer_address, 25) }}</span>
+                                </button>
+                            @else
+                                <span class="text-[11px] text-outline italic block mt-1">Alamat belum diatur</span>
+                            @endif
                         </td>
 
                         {{-- Item Produk --}}
@@ -196,19 +216,26 @@
                             </span>
                         </td>
 
-                        {{-- Kurir & Resi --}}
+                        {{-- Kurir & Resi (Khusus Ambil Mandiri tidak ada resi) --}}
                         <td class="px-4 py-3.5">
-                            <div class="flex items-center gap-1 font-semibold text-on-surface text-xs">
-                                <span class="material-symbols-outlined text-[16px] text-secondary">local_shipping</span>
-                                {{ $order->shipping_courier }}
-                            </div>
-                            @if($order->tracking_number)
-                                <div class="mt-1 flex items-center gap-1 font-mono text-[11px] bg-surface-container px-2 py-0.5 rounded border border-outline-variant w-fit" title="Nomor Resi">
-                                    <span class="material-symbols-outlined text-[12px] text-outline">barcode</span>
-                                    <span class="text-primary font-bold">{{ $order->tracking_number }}</span>
+                            @if($order->shipping_courier === 'Ambil Mandiri')
+                                <div class="flex items-center gap-1 font-semibold text-purple-800 text-xs">
+                                    <span class="material-symbols-outlined text-[16px] text-purple-700">storefront</span>
+                                    <span>Ambil Mandiri</span>
                                 </div>
                             @else
-                                <span class="text-[11px] text-outline italic block mt-1">Belum ada resi</span>
+                                <div class="flex items-center gap-1 font-semibold text-on-surface text-xs">
+                                    <span class="material-symbols-outlined text-[16px] text-secondary">local_shipping</span>
+                                    <span>{{ $order->shipping_courier }}</span>
+                                </div>
+                                @if($order->tracking_number)
+                                    <div class="mt-1 flex items-center gap-1 font-mono text-[11px] bg-surface-container px-2 py-0.5 rounded border border-outline-variant w-fit" title="Nomor Resi">
+                                        <span class="material-symbols-outlined text-[12px] text-outline">barcode</span>
+                                        <span class="text-primary font-bold">{{ $order->tracking_number }}</span>
+                                    </div>
+                                @else
+                                    <span class="text-[11px] text-outline italic block mt-1">Belum ada resi</span>
+                                @endif
                             @endif
                         </td>
 
@@ -218,6 +245,11 @@
                                 <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 inline-flex items-center gap-1">
                                     <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
                                     Menunggu
+                                </span>
+                            @elseif($order->status === 'shipped' && $order->shipping_courier === 'Ambil Mandiri')
+                                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-800 border border-purple-300 inline-flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
+                                    Siap Diambil
                                 </span>
                             @elseif($order->status === 'shipped')
                                 <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-300 inline-flex items-center gap-1">
@@ -246,7 +278,7 @@
 
                                 {{-- 2. Edit Status & Resi Modal Trigger --}}
                                 <button type="button"
-                                        onclick="openStatusModal({{ $order->id }}, '{{ $order->order_number }}', '{{ $order->status }}', '{{ addslashes($order->tracking_number ?? '') }}')"
+                                        onclick="openStatusModal({{ $order->id }}, '{{ $order->order_number }}', '{{ $order->status }}', '{{ addslashes($order->tracking_number ?? '') }}', '{{ addslashes($order->shipping_courier) }}')"
                                         class="w-8 h-8 rounded-lg bg-surface-container hover:bg-primary hover:text-white text-primary flex items-center justify-center transition-colors"
                                         title="Ubah Status & Input Resi">
                                     <span class="material-symbols-outlined text-[16px]">edit_note</span>
@@ -296,6 +328,30 @@
     </div>
 </div>
 
+{{-- ══ MODAL LIHAT ALAMAT (Sama seperti Manajemen User) ══ --}}
+<div id="modalAlamat" class="hidden fixed inset-0 z-50 flex items-center justify-center p-space-md bg-primary-container/40 backdrop-blur-sm">
+    <div class="bg-surface-container-lowest max-w-md w-full rounded-xl shadow-2xl overflow-hidden border border-outline-variant">
+        <div class="bg-primary px-space-lg py-space-md text-on-primary flex items-center justify-between">
+            <div class="flex items-center gap-2 font-bold text-sm">
+                <span class="material-symbols-outlined text-[20px]">home_pin</span>
+                <span id="alamatTitle">Alamat Pengiriman</span>
+            </div>
+            <button onclick="document.getElementById('modalAlamat').classList.add('hidden')" class="text-on-primary/70 hover:text-on-primary">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+        <div class="p-space-lg flex flex-col gap-space-md">
+            <p id="alamatContent" class="text-sm text-on-surface leading-relaxed whitespace-pre-line"></p>
+            <div class="flex justify-end pt-3 border-t border-surface-container">
+                <button type="button" onclick="document.getElementById('modalAlamat').classList.add('hidden')"
+                        class="px-4 py-2 bg-primary hover:bg-secondary text-on-primary text-xs font-bold uppercase rounded-lg transition-colors">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- ══════════ MODAL UBAH STATUS & INPUT RESI ══════════ --}}
 <div id="modalStatus" class="hidden fixed inset-0 z-50 flex items-center justify-center p-space-md bg-primary-container/40 backdrop-blur-sm">
     <div class="bg-surface-container-lowest max-w-md w-full rounded-xl shadow-2xl overflow-hidden">
@@ -325,12 +381,13 @@
                 <select name="status" id="modalStatusSelect" required
                         class="w-full px-3 py-2.5 bg-surface-container-low border border-outline-variant rounded-lg text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary">
                     <option value="pending">Pending (Menunggu)</option>
-                    <option value="shipped">Shipped (Dalam Pengiriman)</option>
+                    <option value="shipped" id="modalShippedOption">Shipped (Dalam Pengiriman)</option>
                     <option value="completed">Completed (Selesai)</option>
                 </select>
             </div>
 
-            <div>
+            {{-- Resi Input (Khusus kurir ekspedisi, Ambil Mandiri otomatis disembunyikan) --}}
+            <div id="modalTrackingWrap">
                 <label for="modalTrackingInput" class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider block mb-1">
                     Nomor Resi Pengiriman (AWB)
                 </label>
@@ -398,17 +455,65 @@
 
 @push('scripts')
 <script>
-    function openStatusModal(id, orderNumber, currentStatus, currentTracking) {
+    // Format tanggal & jam sesuai device masing-masing
+    document.querySelectorAll('.device-time').forEach(function(el) {
+        const utc = el.dataset.utc;
+        if (utc) {
+            const date = new Date(utc);
+            if (!isNaN(date.getTime())) {
+                const formattedDate = date.toLocaleDateString('id-ID', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+                const formattedTime = date.toLocaleTimeString('id-ID', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                });
+                el.textContent = `${formattedDate}, ${formattedTime}`;
+            }
+        }
+    });
+
+    // Modal Lihat Alamat Lengkap
+    function showAlamat(name, address) {
+        document.getElementById('alamatTitle').textContent = 'Alamat Pengiriman ' + name;
+        document.getElementById('alamatContent').textContent = address;
+        document.getElementById('modalAlamat').classList.remove('hidden');
+    }
+
+    // Modal Update Status & Resi
+    function openStatusModal(id, orderNumber, currentStatus, currentTracking, courier = '') {
         document.getElementById('formStatus').action = `/admin/orders/${id}/status`;
-        document.getElementById('modalOrderNumber').textContent = '#' + orderNumber;
+        document.getElementById('modalOrderNumber').textContent = orderNumber;
         document.getElementById('modalStatusSelect').value = currentStatus;
-        document.getElementById('modalTrackingInput').value = currentTracking || '';
+
+        const trackingWrap = document.getElementById('modalTrackingWrap');
+        const trackingInput = document.getElementById('modalTrackingInput');
+        const shippedOption = document.getElementById('modalShippedOption');
+
+        if (courier === 'Ambil Mandiri') {
+            trackingWrap.classList.add('hidden');
+            trackingInput.value = '';
+            if (shippedOption) {
+                shippedOption.textContent = 'Shipped (Siap Diambil)';
+            }
+        } else {
+            trackingWrap.classList.remove('hidden');
+            trackingInput.value = currentTracking || '';
+            if (shippedOption) {
+                shippedOption.textContent = 'Shipped (Dalam Pengiriman)';
+            }
+        }
+
         document.getElementById('modalStatus').classList.remove('hidden');
     }
 
+    // Modal Hapus Pesanan
     function openDeleteModal(id, orderNumber) {
         document.getElementById('formDelete').action = `/admin/orders/${id}`;
-        document.getElementById('deleteOrderNumber').textContent = '#' + orderNumber;
+        document.getElementById('deleteOrderNumber').textContent = orderNumber;
         document.getElementById('modalDelete').classList.remove('hidden');
     }
 </script>

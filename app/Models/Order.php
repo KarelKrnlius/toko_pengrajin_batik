@@ -73,7 +73,7 @@ class Order extends Model
     {
         return match ($this->status) {
             'pending'   => 'Menunggu',
-            'shipped'   => 'Dikirim',
+            'shipped'   => $this->shipping_courier === 'Ambil Mandiri' ? 'Siap Diambil' : 'Dikirim',
             'completed' => 'Selesai',
             default     => ucfirst($this->status),
         };
@@ -107,7 +107,7 @@ class Order extends Model
         $message = "Halo kak *{$customerName}*,\n\n"
             . "Terima kasih telah berbelanja di *Juragan Batik Surakarta*.\n"
             . "Berikut rincian pesanan Anda:\n"
-            . "🔖 *No. Pesanan:* #{$this->order_number}\n"
+            . "🔖 *No. Pesanan:* {$this->order_number}\n"
             . "📋 *Daftar Produk:*"
             . $itemsList . "\n\n"
             . "🚚 *Kurir:* {$this->shipping_courier}\n"

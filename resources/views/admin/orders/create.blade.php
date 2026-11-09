@@ -29,6 +29,15 @@
     </div>
 </div>
 
+{{-- Floating Toast Notification --}}
+<div id="toastNotification" class="fixed top-6 right-6 z-50 transform -translate-y-6 opacity-0 pointer-events-none transition-all duration-300 max-w-md bg-error text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3">
+    <span class="material-symbols-outlined text-white text-[24px] flex-shrink-0" id="toastIcon">warning</span>
+    <div id="toastMessage" class="text-sm font-semibold">Pesanan harus memiliki minimal satu produk.</div>
+    <button type="button" onclick="hideToast()" class="ml-2 text-white/80 hover:text-white">
+        <span class="material-symbols-outlined text-[18px]">close</span>
+    </button>
+</div>
+
 <div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin py-space-xl">
 
     {{-- Error Alert --}}
@@ -76,7 +85,7 @@
                             <div class="relative" id="userComboboxWrap">
                                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px] pointer-events-none">search</span>
                                 <input type="text" id="user_email_search" autocomplete="off"
-                                       placeholder="Ketik email, lalu klik atau tekan Enter..."
+                                       placeholder="Ketik email"
                                        value="{{ old('user_id') ? ($users->firstWhere('id', old('user_id'))?->email ?? '') : '' }}"
                                        class="w-full pl-11 pr-10 py-3 bg-surface-container-low border border-outline-variant rounded-xl text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary transition"
                                        onclick="openUserDropdown()" oninput="openUserDropdown()" onfocus="openUserDropdown()" onkeydown="onUserKeydown(event)"/>
@@ -113,7 +122,7 @@
                                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">person</span>
                                 <input type="text" name="customer_name" id="customer_name" required
                                        value="{{ old('customer_name') }}"
-                                       placeholder="Nama pelanggan (dapat diubah)"
+                                       placeholder="Nama pelanggan"
                                        class="w-full pl-11 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl text-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-secondary transition"/>
                             </div>
                         </div>
@@ -194,15 +203,15 @@
                                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px] pointer-events-none">local_shipping</span>
                                 <select name="shipping_courier" id="shipping_courier" required onchange="onCourierChange()"
                                         class="w-full pl-11 pr-8 py-3 bg-surface-container-low border border-outline-variant rounded-xl text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary appearance-none cursor-pointer">
-                                    <option value="JNE Express" {{ old('shipping_courier', 'JNE Express') == 'JNE Express' ? 'selected' : '' }}>JNE Express</option>
-                                    <option value="J&T" {{ old('shipping_courier') == 'J&T' ? 'selected' : '' }}>J&T</option>
+                                    <option value="JNE" {{ old('shipping_courier', 'JNE') == 'JNE' ? 'selected' : '' }}>JNE</option>
+                                    <option value="J&T Express" {{ old('shipping_courier') == 'J&T Express' ? 'selected' : '' }}>J&T Express</option>
                                     <option value="Ambil Mandiri" {{ old('shipping_courier') == 'Ambil Mandiri' ? 'selected' : '' }}>Ambil Mandiri</option>
                                 </select>
                                 <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
                             </div>
                         </div>
 
-                        {{-- Biaya Ongkir --}}
+                        {{-- Biaya Ongkir (Dikosongkan agar bisa langsung diketik) --}}
                         <div id="shipping_cost_wrap">
                             <label for="shipping_cost" class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider block mb-1">
                                 Biaya Ongkir (Rp) <span class="text-error">*</span>
@@ -210,14 +219,14 @@
                             <div class="relative">
                                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">payments</span>
                                 <input type="number" name="shipping_cost" id="shipping_cost"
-                                       value="{{ old('shipping_cost', 0) }}" min="0" required
+                                       value="{{ old('shipping_cost') }}" min="0" required
                                        oninput="recalculateTotal()"
                                        placeholder="0"
                                        class="w-full pl-11 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl text-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-secondary transition"/>
                             </div>
                         </div>
 
-                        {{-- Nomor Resi (Wajib untuk JNE & J&T, Tidak Muncul untuk Ambil Mandiri) --}}
+                        {{-- Nomor Resi (Wajib untuk JNE & J&T Express, Tidak Muncul untuk Ambil Mandiri) --}}
                         <div id="tracking_number_wrap">
                             <label for="tracking_number" class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider block mb-1">
                                 Nomor Resi / Tracking AWB <span class="text-error">*</span>
@@ -257,8 +266,8 @@
                                 <select name="status" id="status" required
                                         class="w-full pl-11 pr-8 py-3 bg-surface-container-low border border-outline-variant rounded-xl text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary appearance-none cursor-pointer">
                                     <option value="pending" {{ old('status') == 'pending' ? 'selected' : '' }}>Pending (Menunggu Konfirmasi)</option>
-                                    <option value="shipped" {{ old('status') == 'shipped' ? 'selected' : '' }}>Shipped (Dalam Pengiriman)</option>
-                                    <option value="completed" {{ old('status') == 'completed' ? 'selected' : '' }}>Completed (Selesai / Terbayar)</option>
+                                    <option value="shipped" id="status_shipped_option" {{ old('status') == 'shipped' ? 'selected' : '' }}>Shipped (Dalam Pengiriman)</option>
+                                    <option value="completed" {{ old('status') == 'completed' ? 'selected' : '' }}>Completed (Selesai)</option>
                                 </select>
                                 <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
                             </div>
@@ -312,7 +321,7 @@
                     <div class="mt-space-md p-space-sm bg-surface-container rounded-lg border border-outline-variant/60 flex items-start gap-2">
                         <span class="material-symbols-outlined text-[18px] text-green-700 flex-shrink-0 mt-0.5">chat</span>
                         <p class="text-[11px] text-on-surface-variant leading-relaxed">
-                            Setelah disimpan, Anda dapat mengklik tombol <strong>Konfirmasi WhatsApp</strong> di tabel pesanan untuk mengirim rincian lengkap ke pelanggan dengan 1 klik.
+                            Setelah disimpan, Anda dapat mengklik tombol <strong>Konfirmasi WhatsApp</strong> di tabel pesanan untuk mengirim rincian lengkap ke pelanggan.
                         </p>
                     </div>
 
@@ -321,7 +330,7 @@
                         <button type="submit"
                                 class="w-full py-3.5 bg-primary hover:bg-secondary text-on-primary font-bold text-sm tracking-wider uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
                             <span class="material-symbols-outlined text-[20px]">save</span>
-                            <span>Simpan Pesanan & Potong Stok</span>
+                            <span>Simpan Pesanan</span>
                         </button>
                         <a href="{{ route('admin.orders.index') }}"
                            class="w-full py-2.5 bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold text-xs tracking-wider uppercase rounded-xl transition-colors text-center">
@@ -484,6 +493,37 @@
     });
 
     // ══════════════════════════════════════════════════════════════════
+    // NOTIFIKASI TOAST & ALERT
+    // ══════════════════════════════════════════════════════════════════
+    function showToast(message, isError = true) {
+        const toast = document.getElementById('toastNotification');
+        const toastMsg = document.getElementById('toastMessage');
+        const toastIcon = document.getElementById('toastIcon');
+        if (!toast || !toastMsg) {
+            return;
+        }
+        toastMsg.textContent = message;
+        if (toastIcon) {
+            toastIcon.textContent = isError ? 'warning' : 'check_circle';
+        }
+        toast.className = `fixed top-6 right-6 z-50 transform translate-y-0 opacity-100 transition-all duration-300 max-w-md px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 ${
+            isError ? 'bg-error text-white' : 'bg-green-700 text-white'
+        }`;
+        clearTimeout(window.toastTimer);
+        window.toastTimer = setTimeout(() => {
+            hideToast();
+        }, 4000);
+    }
+
+    function hideToast() {
+        const toast = document.getElementById('toastNotification');
+        if (toast) {
+            toast.classList.add('-translate-y-6', 'opacity-0', 'pointer-events-none');
+            toast.classList.remove('translate-y-0', 'opacity-100');
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════════════
     // 2. KONTROL KURIR & NOMOR RESI DINAMIS
     // ══════════════════════════════════════════════════════════════════
     function onCourierChange() {
@@ -491,6 +531,7 @@
         const trackingWrap = document.getElementById('tracking_number_wrap');
         const trackingInput = document.getElementById('tracking_number');
         const shippingCostInput = document.getElementById('shipping_cost');
+        const statusShippedOpt = document.getElementById('status_shipped_option');
 
         if (courier === 'Ambil Mandiri') {
             // Ambil mandiri: Sembunyikan resi & hapus required
@@ -498,10 +539,21 @@
             trackingInput.removeAttribute('required');
             trackingInput.value = '';
             shippingCostInput.value = 0; // Tidak ada ongkir
+            shippingCostInput.setAttribute('readonly', 'readonly');
+            if (statusShippedOpt) {
+                statusShippedOpt.textContent = 'Shipped (Siap Diambil)';
+            }
         } else {
-            // JNE Express / J&T: Munculkan resi & wajib diisi
+            // JNE / J&T Express: Munculkan resi & wajib diisi
             trackingWrap.classList.remove('hidden');
             trackingInput.setAttribute('required', 'required');
+            shippingCostInput.removeAttribute('readonly');
+            if (shippingCostInput.value === '0') {
+                shippingCostInput.value = ''; // Kosongkan agar admin bisa langsung mengetik
+            }
+            if (statusShippedOpt) {
+                statusShippedOpt.textContent = 'Shipped (Dalam Pengiriman)';
+            }
         }
 
         recalculateTotal();
@@ -550,7 +602,7 @@
                     <label class="text-[11px] font-bold text-outline uppercase block mb-1">Motif / Kain Batik</label>
                     <input type="hidden" name="items[${index}][product_id]" id="prod-id-${index}" value="${selected ? selected.id : ''}">
                     <input type="text" id="prod-search-${index}" autocomplete="off"
-                           placeholder="Ketik nama batik, lalu klik atau tekan Enter..."
+                           placeholder="Ketik nama batik"
                            value="${selected ? escapeHtml(selected.name) : ''}"
                            oninput="filterProductDropdown(${index})"
                            onfocus="openProductDropdown(${index})"
@@ -560,14 +612,18 @@
                     <div id="prod-dropdown-${index}" class="product-dropdown hidden absolute left-0 right-0 top-full mt-1 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-2xl z-50 max-h-56 overflow-y-auto py-1"></div>
                 </div>
 
-                <div class="w-full md:w-28">
-                    <label class="text-[11px] font-bold text-outline uppercase block mb-1">Jumlah</label>
+                <div class="w-full md:w-32">
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="text-[11px] font-bold text-outline uppercase block">Jumlah</label>
+                        <span id="prod-stock-badge-${index}" class="text-[10px] text-outline font-semibold"></span>
+                    </div>
                     <input type="number" name="items[${index}][quantity]" value="${quantity}" min="1" required
                            id="prod-qty-${index}" oninput="onQuantityChange(${index})"
                            class="w-full px-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm text-center text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary"/>
+                    <p id="prod-qty-warning-${index}" class="hidden text-[11px] text-error font-semibold mt-1 leading-tight"></p>
                 </div>
 
-                <div class="w-full md:w-36 text-left md:text-right">
+                <div class="w-full md:w-32 text-left md:text-right">
                     <label class="text-[11px] font-bold text-outline uppercase block mb-1">Harga Satuan</label>
                     <span id="prod-price-${index}" class="text-sm font-semibold text-primary block py-2">Rp 0</span>
                 </div>
@@ -660,6 +716,8 @@
             hidden.value = '';
             delete selectedProducts[index];
             document.getElementById(`prod-price-${index}`).textContent = formatRupiah(0);
+            const stockBadge = document.getElementById(`prod-stock-badge-${index}`);
+            if (stockBadge) stockBadge.textContent = '';
             updateRowSubtotal(index);
         }
         openProductDropdown(index);
@@ -673,12 +731,35 @@
         document.getElementById(`prod-error-${index}`).classList.add('hidden');
 
         const qtyInput = document.getElementById(`prod-qty-${index}`);
-        qtyInput.max = product.stock;
-        if (Number(qtyInput.value) > product.stock) {
-            qtyInput.value = product.stock;
+        const warning = document.getElementById(`prod-qty-warning-${index}`);
+        const stockBadge = document.getElementById(`prod-stock-badge-${index}`);
+
+        if (stockBadge) {
+            stockBadge.textContent = `(Maks: ${product.stock})`;
         }
-        if (Number(qtyInput.value) < 1) {
-            qtyInput.value = 1;
+
+        qtyInput.max = product.stock;
+        if (product.stock <= 0) {
+            qtyInput.value = 0;
+            qtyInput.disabled = true;
+            if (warning) {
+                warning.textContent = 'Stok habis, tidak dapat dipesan';
+                warning.classList.remove('hidden');
+            }
+        } else {
+            qtyInput.disabled = false;
+            if (Number(qtyInput.value) > product.stock) {
+                qtyInput.value = product.stock;
+                if (warning) {
+                    warning.textContent = `Jumlah melebihi stok! Maks: ${product.stock}`;
+                    warning.classList.remove('hidden');
+                }
+            } else {
+                if (warning) warning.classList.add('hidden');
+            }
+            if (Number(qtyInput.value) < 1) {
+                qtyInput.value = 1;
+            }
         }
 
         document.getElementById(`prod-price-${index}`).textContent = formatRupiah(product.price);
@@ -741,8 +822,9 @@
         if (!row) {
             return;
         }
-        if (container.children.length <= 1) {
-            alert('Pesanan harus memiliki minimal satu produk.');
+        const totalRows = container.querySelectorAll('.product-row').length;
+        if (totalRows <= 1) {
+            showToast('Pesanan harus memiliki minimal satu produk.', true);
             return;
         }
         delete selectedProducts[row.dataset.index];
@@ -753,8 +835,23 @@
     function onQuantityChange(index) {
         const product = selectedProducts[index];
         const qtyInput = document.getElementById(`prod-qty-${index}`);
-        if (product && Number(qtyInput.value) > product.stock) {
-            qtyInput.value = product.stock;
+        const warning = document.getElementById(`prod-qty-warning-${index}`);
+        let qty = Number(qtyInput.value);
+
+        if (product) {
+            if (qty > product.stock) {
+                // Jangan izinkan ditambahkan melebihi stok, otomatis batasi ke stok dan beri keterangan
+                qtyInput.value = product.stock;
+                if (warning) {
+                    warning.textContent = `Jumlah melebihi stok! Maks: ${product.stock}`;
+                    warning.classList.remove('hidden');
+                }
+            } else if (qty < 1 && qtyInput.value !== '') {
+                qtyInput.value = 1;
+                if (warning) warning.classList.add('hidden');
+            } else {
+                if (warning) warning.classList.add('hidden');
+            }
         }
         updateRowSubtotal(index);
     }
@@ -796,27 +893,47 @@
 
     document.getElementById('orderForm').addEventListener('submit', function (event) {
         let valid = true;
+        let errorMessage = '';
 
         if (!userIdInput.value) {
             valid = false;
+            errorMessage = 'Silakan pilih email pelanggan terlebih dahulu.';
             emailSearchInput.focus();
             openUserDropdown();
         }
 
-        container.querySelectorAll('.product-row').forEach((row) => {
+        const rows = container.querySelectorAll('.product-row');
+        if (rows.length === 0) {
+            valid = false;
+            errorMessage = 'Pesanan harus memiliki minimal satu produk.';
+        }
+
+        rows.forEach((row) => {
             const index = row.dataset.index;
             const chosen = document.getElementById(`prod-id-${index}`).value;
             const error = document.getElementById(`prod-error-${index}`);
+            const qtyInput = document.getElementById(`prod-qty-${index}`);
+            const product = selectedProducts[index];
+
             if (!chosen) {
                 valid = false;
                 error.classList.remove('hidden');
+                if (!errorMessage) errorMessage = 'Pilih motif batik untuk semua baris produk.';
             } else {
                 error.classList.add('hidden');
+                if (product && Number(qtyInput.value) > product.stock) {
+                    valid = false;
+                    qtyInput.value = product.stock;
+                    if (!errorMessage) errorMessage = `Jumlah produk '${product.name}' melebihi stok yang tersedia (${product.stock}).`;
+                }
             }
         });
 
         if (!valid) {
             event.preventDefault();
+            if (errorMessage) {
+                showToast(errorMessage, true);
+            }
         }
     });
 

@@ -3,12 +3,21 @@
 
 @push('styles')
 <style>
-    /* Styling scrollbar halus */
+    /* Styling card & transisi halus dengan ukuran tetap presisi */
+    .orders-container {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
     .order-card {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        transition: box-shadow 0.2s ease, border-color 0.2s ease;
     }
     .order-card:hover {
-        transform: translateY(-2px);
+        border-color: rgba(var(--color-primary-rgb, 107, 44, 44), 0.35);
+        box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06);
     }
 </style>
 @endpush
@@ -16,7 +25,7 @@
 @section('content')
 {{-- ══ Header Halaman Pesanan Saya ══ --}}
 <div class="w-full bg-gradient-to-r from-primary via-primary-container to-secondary py-10">
-    <div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin">
+    <div class="w-full max-w-[1440px] mx-auto px-margin-mobile lg:px-margin">
         <nav class="flex items-center gap-2 text-xs text-primary-fixed-dim uppercase tracking-wider mb-2">
             <a href="{{ route('home') }}" class="hover:text-white transition-colors">Beranda</a>
             <span>&bull;</span>
@@ -40,7 +49,7 @@
     </div>
 </div>
 
-<div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin py-space-xl">
+<div class="w-full max-w-[1440px] mx-auto px-margin-mobile lg:px-margin py-space-xl box-border orders-container">
 
     {{-- Flash Notifications --}}
     @if(session('success'))
@@ -58,15 +67,15 @@
     @endif
 
     {{-- ══ Filter Tabs Status Pesanan ══ --}}
-    <div class="flex items-center gap-2 mb-space-lg overflow-x-auto pb-1 scrollbar-none">
-        <a href="{{ route('user.orders.index') }}"
+    <div class="flex items-center gap-2 mb-4 overflow-x-auto pb-1 scrollbar-none">
+        <a href="{{ route('user.orders.index', array_filter(['search' => request('search'), 'sort' => request('sort')])) }}"
            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold tracking-wider uppercase transition-all shadow-sm flex-shrink-0 {{ !request('status') ? 'bg-primary text-on-primary ring-2 ring-primary/20' : 'bg-surface-container hover:bg-surface-container-high text-on-surface' }}">
             <span>Semua</span>
             <span class="px-2 py-0.5 rounded-full text-[10px] {{ !request('status') ? 'bg-white/20 text-white' : 'bg-outline-variant/40 text-on-surface' }}">
                 {{ $counts['all'] }}
             </span>
         </a>
-        <a href="{{ route('user.orders.index', ['status' => 'pending']) }}"
+        <a href="{{ route('user.orders.index', array_filter(['status' => 'pending', 'search' => request('search'), 'sort' => request('sort')])) }}"
            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold tracking-wider uppercase transition-all shadow-sm flex-shrink-0 {{ request('status') === 'pending' ? 'bg-amber-600 text-white ring-2 ring-amber-600/20' : 'bg-surface-container hover:bg-surface-container-high text-on-surface' }}">
             <span class="material-symbols-outlined text-[14px]">hourglass_empty</span>
             <span>Menunggu Konfirmasi</span>
@@ -74,15 +83,23 @@
                 {{ $counts['pending'] }}
             </span>
         </a>
-        <a href="{{ route('user.orders.index', ['status' => 'shipped']) }}"
+        <a href="{{ route('user.orders.index', array_filter(['status' => 'shipped', 'search' => request('search'), 'sort' => request('sort')])) }}"
            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold tracking-wider uppercase transition-all shadow-sm flex-shrink-0 {{ request('status') === 'shipped' ? 'bg-blue-600 text-white ring-2 ring-blue-600/20' : 'bg-surface-container hover:bg-surface-container-high text-on-surface' }}">
             <span class="material-symbols-outlined text-[14px]">local_shipping</span>
-            <span>Sedang Dikirim</span>
+            <span>Dikirim</span>
             <span class="px-2 py-0.5 rounded-full text-[10px] {{ request('status') === 'shipped' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-900 font-bold' }}">
                 {{ $counts['shipped'] }}
             </span>
         </a>
-        <a href="{{ route('user.orders.index', ['status' => 'completed']) }}"
+        <a href="{{ route('user.orders.index', array_filter(['status' => 'ready_pickup', 'search' => request('search'), 'sort' => request('sort')])) }}"
+           class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold tracking-wider uppercase transition-all shadow-sm flex-shrink-0 {{ request('status') === 'ready_pickup' ? 'bg-purple-700 text-white ring-2 ring-purple-700/20' : 'bg-surface-container hover:bg-surface-container-high text-on-surface' }}">
+            <span class="material-symbols-outlined text-[14px]">storefront</span>
+            <span>Siap Diambil</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] {{ request('status') === 'ready_pickup' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-900 font-bold' }}">
+                {{ $counts['ready_pickup'] }}
+            </span>
+        </a>
+        <a href="{{ route('user.orders.index', array_filter(['status' => 'completed', 'search' => request('search'), 'sort' => request('sort')])) }}"
            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold tracking-wider uppercase transition-all shadow-sm flex-shrink-0 {{ request('status') === 'completed' ? 'bg-green-700 text-white ring-2 ring-green-700/20' : 'bg-surface-container hover:bg-surface-container-high text-on-surface' }}">
             <span class="material-symbols-outlined text-[14px]">task_alt</span>
             <span>Selesai</span>
@@ -92,54 +109,162 @@
         </a>
     </div>
 
-    {{-- ══ Daftar Kartu Pesanan ══ --}}
-    <div class="flex flex-col gap-space-lg">
-        @forelse($orders as $order)
-        <div class="order-card bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant overflow-hidden">
+    {{-- ══ Toolbar Search Kode Nomor Pesanan & Sort By Terlama / Terbaru ══ --}}
+    <form method="GET" action="{{ route('user.orders.index') }}" class="mb-space-lg bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant p-3.5 sm:p-4">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            @if(request('status'))
+                <input type="hidden" name="status" value="{{ request('status') }}">
+            @endif
 
-            {{-- 1. Card Header: No Pesanan, Tanggal, & Badge Status --}}
-            <div class="px-space-lg py-3.5 bg-surface-container-low border-b border-outline-variant flex flex-wrap items-center justify-between gap-3">
-                <div class="flex items-center gap-3">
-                    <span class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-serif font-bold text-xs flex-shrink-0">
-                        <span class="material-symbols-outlined text-[18px]">receipt</span>
+            {{-- Input Search Kode Nomor Pesanan --}}
+            <div class="relative flex-1">
+                <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
+                <input type="text"
+                       name="search"
+                       value="{{ request('search') }}"
+                       placeholder="Cari kode nomor pesanan (contoh: JB-20261109-XXXX)..."
+                       class="w-full pl-10 pr-4 py-2.5 bg-surface-container-low border border-outline-variant rounded-xl text-xs sm:text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-mono" />
+            </div>
+
+            {{-- Select Sort By (Terbaru / Terlama) --}}
+            <div class="relative min-w-[190px]">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">sort</span>
+                <select name="sort"
+                        onchange="this.form.submit()"
+                        class="w-full pl-9 pr-8 py-2.5 bg-surface-container-low border border-outline-variant rounded-xl text-xs sm:text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium appearance-none cursor-pointer transition-all">
+                    <option value="latest" {{ request('sort', 'latest') === 'latest' ? 'selected' : '' }}>Urutkan: Terbaru</option>
+                    <option value="oldest" {{ request('sort') === 'oldest' ? 'selected' : '' }}>Urutkan: Terlama</option>
+                </select>
+                <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
+            </div>
+
+            {{-- Tombol Cari & Reset --}}
+            <div class="flex items-center gap-2">
+                <button type="submit"
+                        class="flex-1 sm:flex-none px-5 py-2.5 bg-primary hover:bg-secondary text-on-primary font-bold text-xs uppercase tracking-wider rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                    <span class="material-symbols-outlined text-[16px]">search</span>
+                    <span>Cari</span>
+                </button>
+                @if(request('search') || request('sort'))
+                <a href="{{ route('user.orders.index', request('status') ? ['status' => request('status')] : []) }}"
+                   class="px-3.5 py-2.5 bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold rounded-xl border border-outline-variant transition-colors flex items-center gap-1"
+                   title="Reset Pencarian & Urutan">
+                    <span class="material-symbols-outlined text-[16px]">restart_alt</span>
+                    <span class="hidden sm:inline">Reset</span>
+                </a>
+                @endif
+            </div>
+        </div>
+    </form>
+
+    {{-- ══ Daftar Kartu Pesanan ══ --}}
+    <div class="w-full flex flex-col gap-space-lg">
+        @forelse($orders as $order)
+        <div class="order-card w-full max-w-full bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant overflow-hidden box-border">
+
+            {{-- 1. Card Header: Klik untuk Membuka / Menutup Dropdown Rincian Pesanan --}}
+            <div role="button"
+                 tabindex="0"
+                 onkeydown="if(event.key === 'Enter' || event.key === ' ') { toggleOrderDetail({{ $order->id }}); event.preventDefault(); }"
+                 onclick="toggleOrderDetail({{ $order->id }})"
+                 class="w-full max-w-full box-border text-left px-space-lg py-4 bg-surface-container-low hover:bg-surface-container transition-colors flex flex-col md:flex-row md:items-center justify-between gap-3 cursor-pointer select-none group">
+                
+                {{-- Kiri: Ikon, Nomor Pesanan, Tanggal & Jam, serta Kode Resi & Kurir --}}
+                <div class="flex items-start md:items-center gap-3">
+                    <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5 md:mt-0 shadow-sm">
+                        <span class="material-symbols-outlined text-[20px]">receipt_long</span>
                     </span>
                     <div>
-                        <div class="flex items-center gap-2">
-                            <span class="font-mono font-bold text-sm text-primary">#{{ $order->order_number }}</span>
+                        {{-- Baris 1: No. Pesanan & Tanggal & Jam (Device Time) --}}
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="font-mono font-bold text-sm text-primary">{{ $order->order_number }}</span>
                             <span class="text-xs text-outline">&bull;</span>
-                            <span class="text-xs text-on-surface-variant font-medium">
-                                {{ $order->created_at->translatedFormat('d F Y, H:i') }} WIB
+                            <span class="text-xs text-on-surface font-semibold device-time" data-utc="{{ $order->created_at->toISOString() }}">
+                                {{ $order->created_at->translatedFormat('d F Y, H:i') }}
                             </span>
+                        </div>
+
+                        {{-- Baris 2: Informasi Ekspedisi Kurir & Kode Resi --}}
+                        <div class="flex flex-wrap items-center gap-2 mt-1 text-xs">
+                            <span class="font-medium text-on-surface-variant flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[15px] text-secondary">
+                                    {{ $order->shipping_courier === 'Ambil Mandiri' ? 'storefront' : 'local_shipping' }}
+                                </span>
+                                <span>{{ $order->shipping_courier }}</span>
+                            </span>
+
+                            @if($order->shipping_courier === 'Ambil Mandiri')
+                                <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-800 text-[11px] font-semibold">
+                                    Ambil di Toko
+                                </span>
+                            @elseif($order->tracking_number)
+                                <span class="text-outline">&bull;</span>
+                                <span class="font-mono font-bold text-primary bg-surface-container px-2 py-0.5 rounded border border-outline-variant flex items-center gap-1" title="Nomor Resi">
+                                    <span class="material-symbols-outlined text-[13px] text-outline">barcode</span>
+                                    <span>Resi: {{ $order->tracking_number }}</span>
+                                </span>
+                            @else
+                                <span class="text-outline">&bull;</span>
+                                <span class="text-[11px] text-outline italic">Resi belum terbit</span>
+                            @endif
                         </div>
                     </div>
                 </div>
 
-                {{-- Status Badge --}}
-                <div>
-                    @if($order->status === 'pending')
-                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 inline-flex items-center gap-1.5 shadow-sm">
-                            <span class="w-2 h-2 rounded-full bg-amber-600 animate-pulse"></span>
-                            Menunggu Konfirmasi
+                {{-- Kanan: Total Belanja, Status Badge, dan Ikon Panah Dropdown --}}
+                <div class="flex items-center justify-between md:justify-end gap-3 flex-shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-outline-variant/40">
+                    <div class="text-left md:text-right">
+                        <span class="text-[10px] uppercase font-bold text-outline block">Total Belanja</span>
+                        <span class="font-title-lg text-title-lg text-secondary font-bold">
+                            Rp {{ number_format($order->total_price, 0, ',', '.') }}
                         </span>
-                    @elseif($order->status === 'shipped')
-                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-900 border border-blue-300 inline-flex items-center gap-1.5 shadow-sm">
-                            <span class="material-symbols-outlined text-[15px] text-blue-700">local_shipping</span>
-                            Sedang Dikirim
-                        </span>
-                    @elseif($order->status === 'completed')
-                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-900 border border-green-300 inline-flex items-center gap-1.5 shadow-sm">
-                            <span class="material-symbols-outlined text-[15px] text-green-700">task_alt</span>
-                            Pesanan Selesai
-                        </span>
-                    @endif
+                    </div>
+
+                    {{-- Status Badge --}}
+                    <div>
+                        @if($order->status === 'pending')
+                            <div class="flex flex-col items-end gap-1">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 inline-flex items-center gap-1.5 shadow-sm">
+                                    <span class="w-2 h-2 rounded-full bg-amber-600 animate-pulse"></span>
+                                    Menunggu Konfirmasi
+                                </span>
+                                <span class="text-[10px] font-bold text-green-700 flex items-center gap-1 bg-green-50 px-2 py-0.5 rounded border border-green-200">
+                                    <span class="material-symbols-outlined text-[13px]">check_circle</span>
+                                    Pembayaran Berhasil
+                                </span>
+                            </div>
+                        @elseif($order->status === 'shipped' && $order->shipping_courier === 'Ambil Mandiri')
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-900 border border-purple-300 inline-flex items-center gap-1.5 shadow-sm">
+                                <span class="material-symbols-outlined text-[15px] text-purple-700">storefront</span>
+                                Siap Diambil
+                            </span>
+                        @elseif($order->status === 'shipped')
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-900 border border-blue-300 inline-flex items-center gap-1.5 shadow-sm">
+                                <span class="material-symbols-outlined text-[15px] text-blue-700">local_shipping</span>
+                                Dikirim
+                            </span>
+                        @elseif($order->status === 'completed')
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-900 border border-green-300 inline-flex items-center gap-1.5 shadow-sm">
+                                <span class="material-symbols-outlined text-[15px] text-green-700">task_alt</span>
+                                Selesai
+                            </span>
+                        @endif
+                    </div>
+
+                    {{-- Ikon Panah Dropdown (Berputar saat terbuka) --}}
+                    <span class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-outline transition-all duration-200" id="arrow-{{ $order->id }}">
+                        <span class="material-symbols-outlined text-[20px]">expand_more</span>
+                    </span>
                 </div>
             </div>
 
-            {{-- 2. Card Body: Daftar Produk & Rincian Pengiriman --}}
-            <div class="p-space-lg grid grid-cols-1 lg:grid-cols-3 gap-space-lg">
+            {{-- 2. Detail Rincian Pesanan (Dropdown / Pertama Ketutup Dulu) --}}
+            <div id="order-detail-{{ $order->id }}" class="hidden border-t border-outline-variant w-full max-w-full box-border">
+                {{-- Card Body: Daftar Produk & Rincian Pengiriman --}}
+                <div class="p-space-lg grid grid-cols-1 lg:grid-cols-3 gap-space-lg w-full max-w-full box-border">
 
                 {{-- Kolom Kiri & Tengah: Produk yang Dibeli --}}
-                <div class="lg:col-span-2 flex flex-col gap-3">
+                <div class="lg:col-span-2 flex flex-col gap-3 min-w-0 w-full">
                     <h3 class="text-xs font-bold text-outline uppercase tracking-wider mb-1 flex items-center gap-1">
                         <span class="material-symbols-outlined text-[16px] text-secondary">inventory_2</span>
                         <span>Daftar Wastra Batik ({{ $order->items->sum('quantity') }} Pcs)</span>
@@ -187,19 +312,29 @@
                 </div>
 
                 {{-- Kolom Kanan: Info Logistik, Resi, & Total Tagihan --}}
-                <div class="lg:col-span-1 flex flex-col justify-between bg-surface-container-low/60 p-4 rounded-xl border border-outline-variant">
+                <div class="lg:col-span-1 flex flex-col justify-between bg-surface-container-low/60 p-4 rounded-xl border border-outline-variant min-w-0 w-full box-border">
                     <div class="flex flex-col gap-3">
-                        {{-- Logistik & Resi --}}
+                        {{-- Logistik & Resi / Lokasi Pengambilan --}}
                         <div>
                             <span class="text-[11px] font-bold text-outline uppercase tracking-wider block mb-1">
                                 Informasi Pengiriman
                             </span>
                             <div class="flex items-center gap-2 text-sm font-semibold text-primary">
-                                <span class="material-symbols-outlined text-[18px] text-secondary">local_shipping</span>
+                                <span class="material-symbols-outlined text-[18px] text-secondary">
+                                    {{ $order->shipping_courier === 'Ambil Mandiri' ? 'storefront' : 'local_shipping' }}
+                                </span>
                                 <span>{{ $order->shipping_courier }}</span>
                             </div>
 
-                            @if($order->tracking_number)
+                            @if($order->shipping_courier === 'Ambil Mandiri')
+                            <div class="mt-2 p-2.5 bg-purple-50 text-purple-900 rounded-lg border border-purple-200 text-xs">
+                                <span class="font-bold flex items-center gap-1 text-purple-900">
+                                    <span class="material-symbols-outlined text-[15px]">storefront</span>
+                                    Pengambilan Mandiri di Toko
+                                </span>
+                                <span class="text-[11px] text-purple-700 block mt-0.5">Silakan ambil pesanan Anda langsung di Galeri Juragan Batik Surakarta.</span>
+                            </div>
+                            @elseif($order->tracking_number)
                             <div class="mt-2 p-2.5 bg-surface-container-lowest rounded-lg border border-outline-variant flex items-center justify-between gap-2">
                                 <div>
                                     <span class="text-[10px] font-bold text-secondary uppercase block">No. Resi Pengiriman</span>
@@ -218,18 +353,44 @@
                             @endif
                         </div>
 
-                        {{-- Alamat Penerima --}}
+                        {{-- Alamat Penerima / Lokasi Pengambilan Toko --}}
                         <div class="pt-2 border-t border-surface-container">
-                            <span class="text-[11px] font-bold text-outline uppercase tracking-wider block mb-1">
-                                Alamat Tujuan
-                            </span>
-                            <p class="text-xs text-on-surface leading-relaxed line-clamp-2" title="{{ $order->customer_address }}">
-                                {{ $order->customer_address ?: ($order->user?->address ?? 'Alamat belum diatur') }}
-                            </p>
-                            <p class="text-xs text-secondary font-medium mt-1">
-                                Penerima: {{ $order->customer_name ?: ($order->user?->name ?? '—') }} ({{ $order->customer_phone ?: ($order->user?->phone ?? '—') }})
-                            </p>
+                            @if($order->shipping_courier === 'Ambil Mandiri')
+                                <span class="text-[11px] font-bold text-outline uppercase tracking-wider block mb-1 flex items-center gap-1 text-purple-900">
+                                    <span class="material-symbols-outlined text-[14px]">store</span>
+                                    Lokasi Pengambilan Toko
+                                </span>
+                                <p class="text-xs text-on-surface leading-relaxed">
+                                    <strong>Galeri Utama Juragan Batik Surakarta</strong><br>
+                                    Jl. Slamet Riyadi No. 128, Surakarta, Jawa Tengah (57151)<br>
+                                    <span class="text-[11px] text-on-surface-variant">Buka Setiap Hari: 09.00 - 20.00 WIB</span>
+                                </p>
+                                <p class="text-xs text-secondary font-medium mt-1.5">
+                                    Nama Pengambil: {{ $order->customer_name ?: ($order->user?->name ?? '—') }} ({{ $order->customer_phone ?: ($order->user?->phone ?? '—') }})
+                                </p>
+                            @else
+                                <span class="text-[11px] font-bold text-outline uppercase tracking-wider block mb-1">
+                                    Alamat Tujuan
+                                </span>
+                                <p class="text-xs text-on-surface leading-relaxed line-clamp-2" title="{{ $order->customer_address }}">
+                                    {{ $order->customer_address ?: ($order->user?->address ?? 'Alamat belum diatur') }}
+                                </p>
+                                <p class="text-xs text-secondary font-medium mt-1">
+                                    Penerima: {{ $order->customer_name ?: ($order->user?->name ?? '—') }} ({{ $order->customer_phone ?: ($order->user?->phone ?? '—') }})
+                                </p>
+                            @endif
                         </div>
+
+                        {{-- Keterangan Pembayaran Berhasil saat Menunggu Konfirmasi --}}
+                        @if($order->status === 'pending')
+                        <div class="p-2.5 bg-green-50 border border-green-200 rounded-lg text-xs text-green-900 flex items-start gap-2">
+                            <span class="material-symbols-outlined text-green-700 text-[18px] flex-shrink-0 mt-0.5">check_circle</span>
+                            <div>
+                                <span class="font-bold text-green-800 block">Pembayaran Berhasil</span>
+                                <span class="text-[11px] text-green-900/80 leading-tight block">Pesanan Anda telah dibayar & tercatat. Menunggu verifikasi admin untuk penyiapan kain batik.</span>
+                            </div>
+                        </div>
+                        @endif
 
                         {{-- Rincian Biaya --}}
                         <div class="pt-2 border-t border-surface-container text-xs space-y-1">
@@ -257,11 +418,14 @@
             </div>
 
             {{-- 3. Card Footer: Tombol Aksi (Pesanan Diterima & Bantuan) --}}
-            <div class="px-space-lg py-3 bg-surface-container-low border-t border-outline-variant flex flex-wrap items-center justify-between gap-3">
+            <div class="px-space-lg py-3 bg-surface-container-low border-t border-outline-variant flex flex-wrap items-center justify-between gap-3 w-full box-border">
                 <div class="text-xs text-on-surface-variant flex items-center gap-1.5">
                     @if($order->status === 'pending')
-                        <span class="material-symbols-outlined text-[16px] text-amber-600">info</span>
-                        <span>Pesanan sedang diverifikasi oleh admin Juragan Batik.</span>
+                        <span class="material-symbols-outlined text-[16px] text-green-600">check_circle</span>
+                        <span><strong class="text-green-700">Pembayaran Berhasil.</strong> Menunggu konfirmasi & verifikasi admin Juragan Batik.</span>
+                    @elseif($order->status === 'shipped' && $order->shipping_courier === 'Ambil Mandiri')
+                        <span class="material-symbols-outlined text-[16px] text-purple-700">storefront</span>
+                        <span><strong class="text-purple-800">Siap Diambil.</strong> Pesanan siap diambil di Galeri Juragan Batik.</span>
                     @elseif($order->status === 'shipped')
                         <span class="material-symbols-outlined text-[16px] text-blue-600">navigation</span>
                         <span>Paket sedang dalam perjalanan menuju alamat Anda.</span>
@@ -278,18 +442,21 @@
                             onclick="confirmOrderReceived({{ $order->id }}, '{{ $order->order_number }}')"
                             class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-green-700 hover:bg-green-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all transform hover:-translate-y-0.5">
                         <span class="material-symbols-outlined text-[18px]">task_alt</span>
-                        <span>Pesanan Diterima / Sampai</span>
+                        <span>{{ $order->shipping_courier === 'Ambil Mandiri' ? 'Pesanan Sudah Diambil' : 'Pesanan Diterima / Sampai' }}</span>
                     </button>
                     @endif
 
                     {{-- Tombol Bantuan / Hubungi Admin --}}
-                    <a href="https://api.whatsapp.com/send?phone=6281234567890&text={{ urlencode('Halo Admin Juragan Batik, saya ingin menanyakan pesanan #' . $order->order_number) }}"
+                    <a href="https://api.whatsapp.com/send?phone=6281234567890&text={{ urlencode('Halo Admin Juragan Batik, saya ingin menanyakan pesanan ' . $order->order_number) }}"
                        target="_blank"
                        class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold rounded-xl transition-colors border border-outline-variant">
                         <span class="material-symbols-outlined text-[16px] text-green-700">chat</span>
                         <span>Bantuan</span>
                     </a>
                 </div>
+            </div>
+
+            {{-- 3. Tutup Dropdown Detail Pesanan --}}
             </div>
 
         </div>
@@ -386,9 +553,52 @@
 
 @push('scripts')
 <script>
+    // Buka / Tutup Dropdown Detail Pesanan
+    function toggleOrderDetail(orderId) {
+        const detail = document.getElementById('order-detail-' + orderId);
+        const arrow = document.getElementById('arrow-' + orderId);
+        if (!detail) return;
+
+        const isHidden = detail.classList.contains('hidden');
+        if (isHidden) {
+            detail.classList.remove('hidden');
+            if (arrow) {
+                arrow.classList.add('rotate-180', 'bg-primary', 'text-white');
+                arrow.classList.remove('bg-surface-container', 'text-outline');
+            }
+        } else {
+            detail.classList.add('hidden');
+            if (arrow) {
+                arrow.classList.remove('rotate-180', 'bg-primary', 'text-white');
+                arrow.classList.add('bg-surface-container', 'text-outline');
+            }
+        }
+    }
+
+    // Format tanggal & jam sesuai device masing-masing
+    document.querySelectorAll('.device-time').forEach(function(el) {
+        const utc = el.dataset.utc;
+        if (utc) {
+            const date = new Date(utc);
+            if (!isNaN(date.getTime())) {
+                const formattedDate = date.toLocaleDateString('id-ID', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric'
+                });
+                const formattedTime = date.toLocaleTimeString('id-ID', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                });
+                el.textContent = `${formattedDate}, ${formattedTime}`;
+            }
+        }
+    });
+
     function confirmOrderReceived(orderId, orderNumber) {
         document.getElementById('formConfirmReceived').action = `/pesanan/${orderId}/terima`;
-        document.getElementById('confirmOrderNumber').textContent = '#' + orderNumber;
+        document.getElementById('confirmOrderNumber').textContent = orderNumber;
         document.getElementById('modalConfirmReceived').classList.remove('hidden');
     }
 
