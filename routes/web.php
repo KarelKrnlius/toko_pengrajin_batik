@@ -80,5 +80,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'is_admin'])->group(
     Route::post('/orders',                      [OrderController::class, 'store'])         ->name('orders.store');
     Route::get('/orders/users/{id}',            [OrderController::class, 'getUserDetails'])->name('orders.user-details');
     Route::patch('/orders/{order}/status',      [OrderController::class, 'updateStatus'])  ->name('orders.update-status');
+    Route::patch('/orders/{order}/cancel',      [OrderController::class, 'cancel'])        ->name('orders.cancel');
     Route::delete('/orders/{order}',            [OrderController::class, 'destroy'])       ->name('orders.destroy');
+
+    // Manajemen Keuangan & Rekap Penjualan
+    Route::get('/finance',                      [\App\Http\Controllers\Admin\FinanceController::class, 'index']) ->name('finance.index');
+    Route::get('/finance/export',               [\App\Http\Controllers\Admin\FinanceController::class, 'export'])->name('finance.export');
 });

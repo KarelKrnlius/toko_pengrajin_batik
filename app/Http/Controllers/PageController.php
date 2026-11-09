@@ -76,9 +76,13 @@ class PageController extends Controller
             default      => $query->latest(),
         };
 
-        $products = $query->paginate(6)->withQueryString();
+        $products = $query->paginate(8)->withQueryString();
 
-        return view('catalog', compact('products', 'categories'));
+        $userFavoriteIds = auth()->check()
+            ? \App\Models\Favorite::where('user_id', auth()->id())->pluck('product_id')->toArray()
+            : [];
+
+        return view('catalog', compact('products', 'categories', 'userFavoriteIds'));
     }
 
     /**

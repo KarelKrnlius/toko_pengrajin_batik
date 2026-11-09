@@ -107,6 +107,14 @@
                 {{ $counts['completed'] }}
             </span>
         </a>
+        <a href="{{ route('user.orders.index', array_filter(['status' => 'cancelled', 'search' => request('search'), 'sort' => request('sort')])) }}"
+           class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold tracking-wider uppercase transition-all shadow-sm flex-shrink-0 {{ request('status') === 'cancelled' ? 'bg-red-700 text-white ring-2 ring-red-700/20' : 'bg-surface-container hover:bg-surface-container-high text-on-surface' }}">
+            <span class="material-symbols-outlined text-[14px]">cancel</span>
+            <span>Pembatalan Pesanan</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] {{ request('status') === 'cancelled' ? 'bg-white/20 text-white' : 'bg-red-100 text-red-900 font-bold' }}">
+                {{ $counts['cancelled'] }}
+            </span>
+        </a>
     </div>
 
     {{-- ══ Toolbar Search Kode Nomor Pesanan & Sort By Terlama / Terbaru ══ --}}
@@ -207,6 +215,26 @@
                                 <span class="text-outline">&bull;</span>
                                 <span class="text-[11px] text-outline italic">Resi belum terbit</span>
                             @endif
+
+                            {{-- Tanggal Dikirim / Siap Diambil & Info Batas Waktu --}}
+                            @if($order->status === 'shipped')
+                                <span class="text-outline">&bull;</span>
+                                @if($order->shipping_courier === 'Ambil Mandiri')
+                                    <span class="text-[11px] text-purple-900 font-medium">
+                                        Siap Diambil: <strong class="device-time" data-utc="{{ $order->shipped_at?->toISOString() }}">{{ $order->shipped_at ? $order->shipped_at->translatedFormat('d M Y') : '-' }}</strong>
+                                    </span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                                        Sisa {{ $order->remaining_days }} hari
+                                    </span>
+                                @else
+                                    <span class="text-[11px] text-blue-900 font-medium">
+                                        Dikirim: <strong class="device-time" data-utc="{{ $order->shipped_at?->toISOString() }}">{{ $order->shipped_at ? $order->shipped_at->translatedFormat('d M Y') : '-' }}</strong>
+                                    </span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                                        Sisa {{ $order->remaining_days }} hari
+                                    </span>
+                                @endif
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -247,6 +275,11 @@
                             <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-900 border border-green-300 inline-flex items-center gap-1.5 shadow-sm">
                                 <span class="material-symbols-outlined text-[15px] text-green-700">task_alt</span>
                                 Selesai
+                            </span>
+                        @elseif($order->status === 'cancelled')
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-900 border border-red-300 inline-flex items-center gap-1.5 shadow-sm">
+                                <span class="material-symbols-outlined text-[15px] text-red-700">cancel</span>
+                                Dibatalkan
                             </span>
                         @endif
                     </div>
@@ -381,6 +414,42 @@
                             @endif
                         </div>
 
+                        {{-- Informasi Batas Waktu & Otomatis Selesai (21 Hari Kurir / 12 Hari Ambil Mandiri) --}}
+                        @if($order->status === 'shipped')
+                            <div class="p-3 {{ $order->shipping_courier === 'Ambil Mandiri' ? 'bg-purple-50/90 border-purple-200 text-purple-950' : 'bg-blue-50/90 border-blue-200 text-blue-950' }} border rounded-xl text-xs space-y-1.5 shadow-xs">
+                                <div class="flex items-center gap-1.5 font-bold {{ $order->shipping_courier === 'Ambil Mandiri' ? 'text-purple-900' : 'text-blue-900' }}">
+                                    <span class="material-symbols-outlined text-[17px] text-amber-600">timer</span>
+                                    <span>
+                                        {{ $order->shipping_courier === 'Ambil Mandiri' ? 'Batas Waktu Pengambilan 12 Hari' : 'Batas Waktu Konfirmasi 21 Hari' }}
+                                    </span>
+                                </div>
+                                <div class="text-[11px] leading-relaxed">
+                                    <p>
+                                        {{ $order->shipping_courier === 'Ambil Mandiri' ? 'Siap diambil sejak:' : 'Pesanan dikirim sejak:' }}
+                                        <strong class="device-time text-primary" data-utc="{{ $order->shipped_at?->toISOString() }}">
+                                            {{ $order->shipped_at ? $order->shipped_at->translatedFormat('d F Y, H:i') : '-' }}
+                                        </strong>
+                                    </p>
+                                    <p class="mt-0.5">
+                                        Maksimal konfirmasi:
+                                        <strong class="device-time text-primary" data-utc="{{ $order->auto_complete_deadline?->toISOString() }}">
+                                            {{ $order->auto_complete_deadline ? $order->auto_complete_deadline->translatedFormat('d F Y') : '-' }}
+                                        </strong>
+                                    </p>
+                                    <div class="mt-1.5 p-2 bg-white/90 rounded border {{ $order->shipping_courier === 'Ambil Mandiri' ? 'border-purple-200 text-purple-900' : 'border-blue-200 text-blue-900' }} font-medium">
+                                        ⚠️ <strong>Peringatan Sistem:</strong>
+                                        {{ $order->shipping_courier === 'Ambil Mandiri'
+                                            ? 'Jika dalam rentang waktu 12 hari pesanan tidak diambil atau tidak dikonfirmasi, maka pesanan akan otomatis diselesaikan sistem Completed.'
+                                            : 'Jika dalam rentang waktu 21 hari Anda tidak mengklik Pesanan Diterima, sistem akan secara otomatis menyelesaikan pesanan Completed.' }}
+                                    </div>
+                                    <p class="font-bold text-amber-900 mt-1 flex items-center gap-1">
+                                        <span>⏳</span>
+                                        <span>Tersisa <strong>Sisa {{ $order->remaining_days }} hari</strong></span>
+                                    </p>
+                                </div>
+                            </div>
+                        @endif
+
                         {{-- Keterangan Pembayaran Berhasil saat Menunggu Konfirmasi --}}
                         @if($order->status === 'pending')
                         <div class="p-2.5 bg-green-50 border border-green-200 rounded-lg text-xs text-green-900 flex items-start gap-2">
@@ -388,6 +457,25 @@
                             <div>
                                 <span class="font-bold text-green-800 block">Pembayaran Berhasil</span>
                                 <span class="text-[11px] text-green-900/80 leading-tight block">Pesanan Anda telah dibayar & tercatat. Menunggu verifikasi admin untuk penyiapan kain batik.</span>
+                            </div>
+                        </div>
+                        @endif
+
+                        {{-- Keterangan Alasan Pembatalan Pesanan --}}
+                        @if($order->status === 'cancelled')
+                        <div class="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-950 flex items-start gap-2.5">
+                            <span class="material-symbols-outlined text-red-700 text-[20px] flex-shrink-0 mt-0.5">cancel</span>
+                            <div class="space-y-1 w-full">
+                                <span class="font-bold text-red-800 text-sm block">Pesanan Telah Dibatalkan</span>
+                                <div class="p-2 bg-white/90 rounded border border-red-200 mt-1">
+                                    <span class="text-[10px] font-bold text-red-800 uppercase tracking-wider block mb-0.5">Alasan Pembatalan:</span>
+                                    <p class="text-xs text-on-surface whitespace-pre-line leading-relaxed font-medium">{{ $order->cancellation_reason ?: 'Tidak ada keterangan alasan.' }}</p>
+                                </div>
+                                @if($order->cancelled_at)
+                                <span class="text-[10px] text-red-700 block mt-1 device-time" data-utc="{{ $order->cancelled_at->toISOString() }}">
+                                    Dibatalkan pada: {{ $order->cancelled_at->translatedFormat('d F Y, H:i') }}
+                                </span>
+                                @endif
                             </div>
                         </div>
                         @endif
@@ -425,29 +513,55 @@
                         <span><strong class="text-green-700">Pembayaran Berhasil.</strong> Menunggu konfirmasi & verifikasi admin Juragan Batik.</span>
                     @elseif($order->status === 'shipped' && $order->shipping_courier === 'Ambil Mandiri')
                         <span class="material-symbols-outlined text-[16px] text-purple-700">storefront</span>
-                        <span><strong class="text-purple-800">Siap Diambil.</strong> Pesanan siap diambil di Galeri Juragan Batik.</span>
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <span><strong class="text-purple-800">Siap Diambil.</strong> Pesanan siap diambil di Galeri Juragan Batik.</span>
+                            <span class="text-[11px] font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded border border-amber-300 inline-flex items-center gap-1">
+                                <span>⏳</span>
+                                <span>Sisa {{ $order->remaining_days }} hari</span>
+                            </span>
+                        </div>
                     @elseif($order->status === 'shipped')
                         <span class="material-symbols-outlined text-[16px] text-blue-600">navigation</span>
-                        <span>Paket sedang dalam perjalanan menuju alamat Anda.</span>
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <span>Paket sedang dalam perjalanan menuju alamat Anda.</span>
+                            <span class="text-[11px] font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded border border-amber-300 inline-flex items-center gap-1">
+                                <span>⏳</span>
+                                <span>Sisa {{ $order->remaining_days }} hari</span>
+                            </span>
+                        </div>
                     @elseif($order->status === 'completed')
                         <span class="material-symbols-outlined text-[16px] text-green-700">verified</span>
                         <span>Pesanan telah selesai diterima. Terima kasih!</span>
+                    @elseif($order->status === 'cancelled')
+                        <span class="material-symbols-outlined text-[16px] text-red-700">cancel</span>
+                        <span class="text-red-800 font-semibold">Pesanan ini telah dibatalkan.</span>
                     @endif
                 </div>
 
                 <div class="flex items-center gap-2">
+                    {{-- ══ TOMBOL BATALKAN PESANAN VIA WHATSAPP (HANYA MUNCUL JIKA STATUS PENDING) ══ --}}
+                    @if($order->status === 'pending')
+                    <a href="https://api.whatsapp.com/send?phone=6281382958012&text={{ urlencode('Halo Admin Juragan Batik, saya ingin membatalkan pesanan ' . $order->order_number . ' atas nama ' . ($order->customer_name ?: ($order->user?->name ?? 'Pelanggan')) . '. Mohon bantuannya untuk proses pembatalan.') }}"
+                       target="_blank"
+                       class="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 font-bold text-xs uppercase tracking-wider rounded-xl transition-all border border-red-200 shadow-xs"
+                       title="Batalkan Pesanan via WhatsApp Admin (081382958012)">
+                        <span class="material-symbols-outlined text-[16px] text-red-600">cancel</span>
+                        <span>Batalkan Pesanan</span>
+                    </a>
+                    @endif
+
                     {{-- ══ TOMBOL UTAMA: PESANAN DITERIMA / SAMPAI (HANYA MUNCUL JIKA SHIPPED) ══ --}}
                     @if($order->status === 'shipped')
                     <button type="button"
-                            onclick="confirmOrderReceived({{ $order->id }}, '{{ $order->order_number }}')"
-                            class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-green-700 hover:bg-green-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all transform hover:-translate-y-0.5">
+                            onclick="confirmOrderReceived({{ $order->id }}, '{{ $order->order_number }}', {{ $order->shipping_courier === 'Ambil Mandiri' ? 'true' : 'false' }})"
+                            class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-green-700 hover:bg-green-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all transform hover:-translate-y-0.5 cursor-pointer">
                         <span class="material-symbols-outlined text-[18px]">task_alt</span>
                         <span>{{ $order->shipping_courier === 'Ambil Mandiri' ? 'Pesanan Sudah Diambil' : 'Pesanan Diterima / Sampai' }}</span>
                     </button>
                     @endif
 
                     {{-- Tombol Bantuan / Hubungi Admin --}}
-                    <a href="https://api.whatsapp.com/send?phone=6281234567890&text={{ urlencode('Halo Admin Juragan Batik, saya ingin menanyakan pesanan ' . $order->order_number) }}"
+                    <a href="https://api.whatsapp.com/send?phone=6281382958012&text={{ urlencode('Halo Admin Juragan Batik, saya ingin menanyakan pesanan ' . $order->order_number) }}"
                        target="_blank"
                        class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold rounded-xl transition-colors border border-outline-variant">
                         <span class="material-symbols-outlined text-[16px] text-green-700">chat</span>
@@ -503,15 +617,15 @@
 
 </div>
 
-{{-- ══════════ MODAL KONFIRMASI PESANAN SAMPAI ══════════ --}}
+{{-- ══════════ MODAL KONFIRMASI PESANAN SAMPAI / DIAMBIL ══════════ --}}
 <div id="modalConfirmReceived" class="hidden fixed inset-0 z-50 flex items-center justify-center p-space-md bg-primary-container/40 backdrop-blur-sm">
     <div class="bg-surface-container-lowest max-w-md w-full rounded-2xl shadow-2xl overflow-hidden border border-outline-variant">
-        <div class="bg-gradient-to-r from-green-700 to-green-800 px-space-lg py-space-md text-white flex items-center justify-between">
+        <div id="modalHeaderBg" class="bg-gradient-to-r from-green-700 to-green-800 px-space-lg py-space-md text-white flex items-center justify-between">
             <h3 class="font-headline-sm text-headline-sm flex items-center gap-2">
-                <span class="material-symbols-outlined text-[24px]">task_alt</span>
-                <span>Konfirmasi Barang Diterima</span>
+                <span id="modalIconTitle" class="material-symbols-outlined text-[24px]">task_alt</span>
+                <span id="modalTitleText">Konfirmasi Barang Diterima</span>
             </h3>
-            <button onclick="document.getElementById('modalConfirmReceived').classList.add('hidden')" class="hover:opacity-80">
+            <button type="button" onclick="document.getElementById('modalConfirmReceived').classList.add('hidden')" class="hover:opacity-80 cursor-pointer">
                 <span class="material-symbols-outlined text-[24px]">close</span>
             </button>
         </div>
@@ -521,14 +635,14 @@
             @method('PATCH')
 
             <div class="flex items-start gap-3">
-                <div class="w-12 h-12 rounded-xl bg-green-50 text-green-700 flex items-center justify-center flex-shrink-0 border border-green-200">
-                    <span class="material-symbols-outlined text-[28px]">mark_email_read</span>
+                <div id="modalIconBox" class="w-12 h-12 rounded-xl bg-green-50 text-green-700 flex items-center justify-center flex-shrink-0 border border-green-200">
+                    <span id="modalBodyIcon" class="material-symbols-outlined text-[28px]">mark_email_read</span>
                 </div>
                 <div>
-                    <p class="text-sm text-on-surface font-semibold mb-1">
+                    <p id="confirmQuestion" class="text-sm text-on-surface font-semibold mb-1">
                         Apakah paket pesanan <span id="confirmOrderNumber" class="text-primary font-mono font-bold"></span> telah sampai dan Anda terima dengan baik?
                     </p>
-                    <p class="text-xs text-on-surface-variant leading-relaxed">
+                    <p id="confirmSubtext" class="text-xs text-on-surface-variant leading-relaxed">
                         Dengan menekan tombol konfirmasi di bawah, status pesanan akan diselesaikan (Completed) dan transaksi dinyatakan selesai.
                     </p>
                 </div>
@@ -536,13 +650,15 @@
 
             <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-surface-container">
                 <button type="button" onclick="document.getElementById('modalConfirmReceived').classList.add('hidden')"
-                        class="px-4 py-2.5 bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold text-xs uppercase tracking-wider rounded-xl transition-colors">
+                        id="btnCancelConfirm"
+                        class="px-4 py-2.5 bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold text-xs uppercase tracking-wider rounded-xl transition-colors cursor-pointer">
                     Belum Sampai
                 </button>
                 <button type="submit"
-                        class="px-5 py-2.5 bg-green-700 hover:bg-green-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center gap-1.5">
+                        id="btnSubmitConfirm"
+                        class="px-5 py-2.5 bg-green-700 hover:bg-green-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer">
                     <span class="material-symbols-outlined text-[18px]">verified</span>
-                    <span>Ya, Pesanan Sudah Diterima</span>
+                    <span id="btnSubmitText">Ya, Pesanan Sudah Diterima</span>
                 </button>
             </div>
         </form>
@@ -596,16 +712,57 @@
         }
     });
 
-    function confirmOrderReceived(orderId, orderNumber) {
+    // Konfirmasi pesanan (Pengiriman Kurir vs Ambil Mandiri)
+    function confirmOrderReceived(orderId, orderNumber, isPickup = false) {
         document.getElementById('formConfirmReceived').action = `/pesanan/${orderId}/terima`;
         document.getElementById('confirmOrderNumber').textContent = orderNumber;
+
+        const modalTitleText = document.getElementById('modalTitleText');
+        const modalIconTitle = document.getElementById('modalIconTitle');
+        const modalBodyIcon = document.getElementById('modalBodyIcon');
+        const modalHeaderBg = document.getElementById('modalHeaderBg');
+        const modalIconBox = document.getElementById('modalIconBox');
+        const confirmQuestion = document.getElementById('confirmQuestion');
+        const confirmSubtext = document.getElementById('confirmSubtext');
+        const btnCancelConfirm = document.getElementById('btnCancelConfirm');
+        const btnSubmitConfirm = document.getElementById('btnSubmitConfirm');
+        const btnSubmitText = document.getElementById('btnSubmitText');
+
+        if (isPickup) {
+            // Khusus Pesanan Ambil Mandiri
+            modalTitleText.textContent = 'Konfirmasi Pengambilan di Toko';
+            modalIconTitle.textContent = 'storefront';
+            modalBodyIcon.textContent = 'shopping_bag';
+            modalHeaderBg.className = 'bg-gradient-to-r from-purple-700 to-purple-800 px-space-lg py-space-md text-white flex items-center justify-between';
+            modalIconBox.className = 'w-12 h-12 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center flex-shrink-0 border border-purple-200';
+            btnSubmitConfirm.className = 'px-5 py-2.5 bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer';
+
+            confirmQuestion.innerHTML = `Apakah pesanan <span class="text-primary font-mono font-bold">${orderNumber}</span> sudah diambil di Galeri Toko Juragan Batik?`;
+            confirmSubtext.textContent = 'Dengan menekan tombol konfirmasi di bawah, pesanan dinyatakan telah selesai diambil di galeri dan status pesanan diselesaikan (Completed).';
+            btnCancelConfirm.textContent = 'Belum Diambil';
+            btnSubmitText.textContent = 'Ya, Sudah Diambil di Toko';
+        } else {
+            // Pesanan Dikirim Ekspedisi Kurir (JNE / J&T)
+            modalTitleText.textContent = 'Konfirmasi Barang Diterima';
+            modalIconTitle.textContent = 'task_alt';
+            modalBodyIcon.textContent = 'mark_email_read';
+            modalHeaderBg.className = 'bg-gradient-to-r from-green-700 to-green-800 px-space-lg py-space-md text-white flex items-center justify-between';
+            modalIconBox.className = 'w-12 h-12 rounded-xl bg-green-50 text-green-700 flex items-center justify-center flex-shrink-0 border border-green-200';
+            btnSubmitConfirm.className = 'px-5 py-2.5 bg-green-700 hover:bg-green-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer';
+
+            confirmQuestion.innerHTML = `Apakah paket pesanan <span class="text-primary font-mono font-bold">${orderNumber}</span> telah sampai dan Anda terima dengan baik?`;
+            confirmSubtext.textContent = 'Dengan menekan tombol konfirmasi di bawah, status pesanan akan diselesaikan (Completed) dan transaksi dinyatakan selesai.';
+            btnCancelConfirm.textContent = 'Belum Sampai';
+            btnSubmitText.textContent = 'Ya, Pesanan Sudah Diterima';
+        }
+
         document.getElementById('modalConfirmReceived').classList.remove('hidden');
     }
 
     function copyTracking(trackingNumber) {
         if (!trackingNumber) return;
         navigator.clipboard.writeText(trackingNumber).then(() => {
-            alert('Nomor resi ' + trackingNumber + ' berhasil disalin ke clipboard!');
+            window.showToast('Nomor resi ' + trackingNumber + ' berhasil disalin ke clipboard!', 'success');
         }).catch(err => {
             console.error('Gagal menyalin:', err);
         });

@@ -82,6 +82,14 @@
                 {{ $counts['completed'] }}
             </span>
         </a>
+        <a href="{{ route('admin.orders.index', ['status' => 'cancelled']) }}"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold tracking-wider uppercase transition-colors shadow-sm {{ request('status') === 'cancelled' ? 'bg-red-700 text-white' : 'bg-surface-container hover:bg-surface-container-high text-on-surface' }}">
+            <span class="material-symbols-outlined text-[14px]">cancel</span>
+            <span>Pembatalan Pesanan</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] {{ request('status') === 'cancelled' ? 'bg-white/20 text-white' : 'bg-red-100 text-red-900 font-bold' }}">
+                {{ $counts['cancelled'] }}
+            </span>
+        </a>
     </div>
 
     {{-- ══ Toolbar Filter & Search ══ --}}
@@ -251,16 +259,41 @@
                                     <span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
                                     Siap Diambil
                                 </span>
+                                <div class="mt-1 text-[10px] text-purple-900 leading-tight">
+                                    <span>Sejak: <strong class="device-time" data-utc="{{ $order->shipped_at?->toISOString() }}">{{ $order->shipped_at ? $order->shipped_at->translatedFormat('d/m/y') : '-' }}</strong></span>
+                                    <span class="block text-amber-800 font-bold bg-amber-50 px-1 py-0.5 rounded border border-amber-200 mt-0.5">
+                                        Sisa {{ $order->remaining_days }} hari
+                                    </span>
+                                </div>
                             @elseif($order->status === 'shipped')
                                 <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-300 inline-flex items-center gap-1">
                                     <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
                                     Dikirim
                                 </span>
+                                <div class="mt-1 text-[10px] text-blue-900 leading-tight">
+                                    <span>Kirim: <strong class="device-time" data-utc="{{ $order->shipped_at?->toISOString() }}">{{ $order->shipped_at ? $order->shipped_at->translatedFormat('d/m/y') : '-' }}</strong></span>
+                                    <span class="block text-amber-800 font-bold bg-amber-50 px-1 py-0.5 rounded border border-amber-200 mt-0.5">
+                                        Sisa {{ $order->remaining_days }} hari
+                                    </span>
+                                </div>
                             @elseif($order->status === 'completed')
                                 <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-300 inline-flex items-center gap-1">
                                     <span class="w-1.5 h-1.5 rounded-full bg-green-600"></span>
                                     Selesai
                                 </span>
+                            @elseif($order->status === 'cancelled')
+                                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-300 inline-flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-red-600"></span>
+                                    Dibatalkan
+                                </span>
+                                @if($order->cancellation_reason)
+                                    <button type="button"
+                                            onclick="showAlasanBatal({{ json_encode($order->order_number) }}, {{ json_encode($order->cancellation_reason) }}, {{ json_encode($order->cancelled_at ? $order->cancelled_at->translatedFormat('d F Y, H:i') : '') }})"
+                                            class="block text-[10px] text-red-700 hover:text-red-900 underline mt-1 mx-auto font-medium cursor-pointer"
+                                            title="Lihat Alasan Pembatalan">
+                                        Alasan Batal
+                                    </button>
+                                @endif
                             @endif
                         </td>
 
@@ -279,18 +312,27 @@
                                 {{-- 2. Edit Status & Resi Modal Trigger --}}
                                 <button type="button"
                                         onclick="openStatusModal({{ $order->id }}, '{{ $order->order_number }}', '{{ $order->status }}', '{{ addslashes($order->tracking_number ?? '') }}', '{{ addslashes($order->shipping_courier) }}')"
-                                        class="w-8 h-8 rounded-lg bg-surface-container hover:bg-primary hover:text-white text-primary flex items-center justify-center transition-colors"
+                                        class="w-8 h-8 rounded-lg bg-surface-container hover:bg-primary hover:text-white text-primary flex items-center justify-center transition-colors cursor-pointer"
                                         title="Ubah Status & Input Resi">
                                     <span class="material-symbols-outlined text-[16px]">edit_note</span>
                                 </button>
 
-                                {{-- 3. Hapus Pesanan & Kembalikan Stok --}}
+                                {{-- 3. Batalkan Pesanan (Stok Kembali & Masuk Tab Pembatalan) --}}
+                                @if($order->status !== 'cancelled')
                                 <button type="button"
-                                        onclick="openDeleteModal({{ $order->id }}, '{{ $order->order_number }}')"
-                                        class="w-8 h-8 rounded-lg bg-surface-container hover:bg-error hover:text-white text-error flex items-center justify-center transition-colors"
-                                        title="Batalkan & Hapus Pesanan">
-                                    <span class="material-symbols-outlined text-[16px]">delete</span>
+                                        onclick="openCancelModal({{ $order->id }}, '{{ $order->order_number }}')"
+                                        class="w-8 h-8 rounded-lg bg-surface-container hover:bg-red-700 hover:text-white text-red-600 flex items-center justify-center transition-colors cursor-pointer"
+                                        title="Batalkan Pesanan (Stok Kembali & Masuk Tab Pembatalan)">
+                                    <span class="material-symbols-outlined text-[16px]">cancel</span>
                                 </button>
+                                @else
+                                <button type="button"
+                                        onclick="showAlasanBatal({{ json_encode($order->order_number) }}, {{ json_encode($order->cancellation_reason) }}, {{ json_encode($order->cancelled_at ? $order->cancelled_at->translatedFormat('d F Y, H:i') : '') }})"
+                                        class="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 flex items-center justify-center transition-colors cursor-pointer"
+                                        title="Lihat Alasan Pembatalan">
+                                    <span class="material-symbols-outlined text-[16px]">info</span>
+                                </button>
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -383,6 +425,7 @@
                     <option value="pending">Pending (Menunggu)</option>
                     <option value="shipped" id="modalShippedOption">Shipped (Dalam Pengiriman)</option>
                     <option value="completed">Completed (Selesai)</option>
+                    <option value="cancelled">Cancelled (Dibatalkan)</option>
                 </select>
             </div>
 
@@ -395,6 +438,12 @@
                        placeholder="Contoh: JNE892301928"
                        class="w-full px-3 py-2.5 bg-surface-container-low border border-outline-variant rounded-lg text-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-secondary"/>
                 <p class="text-[11px] text-on-surface-variant mt-1">Wajib diisi saat pesanan berstatus dikirim agar pelanggan dapat melacak paket.</p>
+            </div>
+
+            {{-- Peringatan Otomatis Selesai (21 Hari / 12 Hari) --}}
+            <div id="modalDeadlineNotice" class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-950 flex items-start gap-2">
+                <span class="material-symbols-outlined text-[18px] text-amber-700 flex-shrink-0 mt-0.5">info</span>
+                <div id="modalDeadlineNoticeText" class="space-y-0.5 leading-relaxed"></div>
             </div>
 
             <div class="flex justify-end gap-2 pt-3 border-t border-surface-container">
@@ -411,13 +460,102 @@
     </div>
 </div>
 
+{{-- ══════════ MODAL BATALKAN PESANAN (TIDAK HAPUS, STOK KEMBALI, MASUK PEMBATALAN) ══════════ --}}
+<div id="modalCancel" class="hidden fixed inset-0 z-50 flex items-center justify-center p-space-md bg-primary-container/40 backdrop-blur-sm">
+    <div class="bg-surface-container-lowest max-w-md w-full rounded-2xl shadow-2xl overflow-hidden border border-outline-variant">
+        <div class="bg-gradient-to-r from-red-700 to-red-800 px-space-lg py-space-md text-white flex items-center justify-between">
+            <h3 class="font-headline-sm text-headline-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-[22px]">cancel</span>
+                <span>Batalkan Pesanan</span>
+            </h3>
+            <button type="button" onclick="document.getElementById('modalCancel').classList.add('hidden')" class="hover:opacity-80 cursor-pointer">
+                <span class="material-symbols-outlined text-[22px]">close</span>
+            </button>
+        </div>
+
+        <form id="formCancel" method="POST" class="p-space-lg flex flex-col gap-4">
+            @csrf
+            @method('PATCH')
+
+            <div>
+                <span class="text-xs text-outline uppercase font-bold block mb-0.5">Nomor Pesanan</span>
+                <span id="cancelOrderNumber" class="font-mono text-base font-bold text-primary"></span>
+            </div>
+
+            <div>
+                <label for="cancelReasonInput" class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider block mb-1">
+                    Keterangan Alasan Pembatalan <span class="text-error">*</span>
+                </label>
+                <textarea name="reason" id="cancelReasonInput" rows="3" required
+                          placeholder="Tuliskan keterangan mengapa pesanan dibatalkan (misal: Permintaan pembatalan dari pelanggan via WhatsApp / Stok kain tidak tersedia / Kendala pembayaran)..."
+                          class="w-full px-3 py-2.5 bg-surface-container-low border border-outline-variant rounded-xl text-xs sm:text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-red-600 placeholder:text-outline"></textarea>
+            </div>
+
+            <div class="p-3 bg-red-50 border border-red-200 rounded-xl text-red-950 text-xs flex items-start gap-2.5">
+                <span class="material-symbols-outlined text-[20px] text-red-700 flex-shrink-0 mt-0.5">info</span>
+                <div class="leading-relaxed">
+                    <span>Pesanan ini <strong>tidak akan terhapus</strong>, melainkan disimpan dengan status <strong>Dibatalkan</strong> dan akan muncul di tab <strong>Pembatalan Pesanan</strong>.</span>
+                    <span class="block mt-1 font-semibold text-green-800">✅ Stok semua produk akan secara otomatis dikembalikan ke inventaris.</span>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-3 border-t border-surface-container">
+                <button type="button" onclick="document.getElementById('modalCancel').classList.add('hidden')"
+                        class="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-bold uppercase rounded-xl transition-colors cursor-pointer">
+                    Kembali
+                </button>
+                <button type="submit"
+                        class="px-5 py-2.5 bg-red-700 hover:bg-red-800 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors shadow-sm flex items-center gap-1.5 cursor-pointer">
+                    <span class="material-symbols-outlined text-[16px]">cancel</span>
+                    <span>Konfirmasi Batalkan Pesanan</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- ══════════ MODAL LIHAT ALASAN PEMBATALAN ══════════ --}}
+<div id="modalLihatAlasan" class="hidden fixed inset-0 z-50 flex items-center justify-center p-space-md bg-primary-container/40 backdrop-blur-sm">
+    <div class="bg-surface-container-lowest max-w-md w-full rounded-2xl shadow-2xl overflow-hidden border border-outline-variant">
+        <div class="bg-gradient-to-r from-red-700 to-red-800 px-space-lg py-space-md text-white flex items-center justify-between">
+            <h3 class="font-headline-sm text-headline-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-[22px]">info</span>
+                <span>Alasan Pembatalan Pesanan</span>
+            </h3>
+            <button type="button" onclick="document.getElementById('modalLihatAlasan').classList.add('hidden')" class="hover:opacity-80 cursor-pointer">
+                <span class="material-symbols-outlined text-[22px]">close</span>
+            </button>
+        </div>
+
+        <div class="p-space-lg flex flex-col gap-3">
+            <div>
+                <span class="text-xs text-outline uppercase font-bold block mb-0.5">Nomor Pesanan</span>
+                <span id="lihatAlasanOrderNumber" class="font-mono text-base font-bold text-primary"></span>
+                <span id="lihatAlasanDate" class="text-xs text-on-surface-variant block mt-0.5"></span>
+            </div>
+
+            <div class="p-3 bg-red-50 border border-red-200 rounded-xl text-red-950 text-xs">
+                <span class="font-bold text-red-800 uppercase tracking-wider block mb-1">Keterangan / Alasan:</span>
+                <p id="lihatAlasanContent" class="text-xs text-on-surface whitespace-pre-line leading-relaxed font-medium"></p>
+            </div>
+
+            <div class="flex justify-end pt-3 border-t border-surface-container">
+                <button type="button" onclick="document.getElementById('modalLihatAlasan').classList.add('hidden')"
+                        class="px-4 py-2 bg-primary hover:bg-secondary text-on-primary text-xs font-bold uppercase rounded-xl transition-colors cursor-pointer">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- ══════════ MODAL HAPUS PESANAN ══════════ --}}
 <div id="modalDelete" class="hidden fixed inset-0 z-50 flex items-center justify-center p-space-md bg-primary-container/40 backdrop-blur-sm">
     <div class="bg-surface-container-lowest max-w-sm w-full rounded-xl shadow-2xl overflow-hidden">
         <div class="bg-error px-space-lg py-space-md text-white flex items-center justify-between">
             <h3 class="font-headline-sm text-headline-sm flex items-center gap-2">
                 <span class="material-symbols-outlined text-[20px]">warning</span>
-                <span>Batalkan Pesanan</span>
+                <span>Hapus Pesanan</span>
             </h3>
             <button onclick="document.getElementById('modalDelete').classList.add('hidden')" class="hover:opacity-80">
                 <span class="material-symbols-outlined text-[22px]">close</span>
@@ -429,13 +567,8 @@
             @method('DELETE')
 
             <p class="text-sm text-on-surface leading-relaxed">
-                Apakah Anda yakin ingin membatalkan & menghapus pesanan <strong id="deleteOrderNumber" class="text-error font-mono"></strong>?
+                Apakah Anda yakin ingin menghapus data pesanan <strong id="deleteOrderNumber" class="text-error font-mono"></strong>?
             </p>
-
-            <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-900 text-xs flex items-start gap-2">
-                <span class="material-symbols-outlined text-[16px] text-amber-700 flex-shrink-0 mt-0.5">inventory</span>
-                <span>Stok semua produk dalam pesanan ini akan <strong>secara otomatis dikembalikan</strong> ke inventaris.</span>
-            </div>
 
             <div class="flex justify-end gap-2 pt-3 border-t border-surface-container mt-2">
                 <button type="button" onclick="document.getElementById('modalDelete').classList.add('hidden')"
@@ -444,7 +577,7 @@
                 </button>
                 <button type="submit"
                         class="px-4 py-2 bg-error hover:bg-red-700 text-white text-xs font-bold uppercase rounded-lg transition-colors shadow-sm">
-                    Ya, Batalkan Pesanan
+                    Ya, Hapus Data
                 </button>
             </div>
         </form>
@@ -483,6 +616,22 @@
         document.getElementById('modalAlamat').classList.remove('hidden');
     }
 
+    // Modal Batalkan Pesanan (Stok Kembali & Masuk Tab Pembatalan)
+    function openCancelModal(id, orderNumber) {
+        document.getElementById('formCancel').action = `/admin/orders/${id}/cancel`;
+        document.getElementById('cancelOrderNumber').textContent = orderNumber;
+        document.getElementById('cancelReasonInput').value = '';
+        document.getElementById('modalCancel').classList.remove('hidden');
+    }
+
+    // Modal Lihat Alasan Pembatalan
+    function showAlasanBatal(orderNumber, reason, cancelledAt) {
+        document.getElementById('lihatAlasanOrderNumber').textContent = orderNumber;
+        document.getElementById('lihatAlasanContent').textContent = reason || 'Tidak ada keterangan alasan.';
+        document.getElementById('lihatAlasanDate').textContent = cancelledAt ? 'Dibatalkan pada: ' + cancelledAt : '';
+        document.getElementById('modalLihatAlasan').classList.remove('hidden');
+    }
+
     // Modal Update Status & Resi
     function openStatusModal(id, orderNumber, currentStatus, currentTracking, courier = '') {
         document.getElementById('formStatus').action = `/admin/orders/${id}/status`;
@@ -492,6 +641,7 @@
         const trackingWrap = document.getElementById('modalTrackingWrap');
         const trackingInput = document.getElementById('modalTrackingInput');
         const shippedOption = document.getElementById('modalShippedOption');
+        const deadlineNoticeText = document.getElementById('modalDeadlineNoticeText');
 
         if (courier === 'Ambil Mandiri') {
             trackingWrap.classList.add('hidden');
@@ -499,11 +649,17 @@
             if (shippedOption) {
                 shippedOption.textContent = 'Shipped (Siap Diambil)';
             }
+            if (deadlineNoticeText) {
+                deadlineNoticeText.innerHTML = '<strong>Aturan Ambil Mandiri:</strong> Ketika status diubah ke <em>Siap Diambil</em>, tanggal otomatis dicatat. Pelanggan diberi rentang <strong>12 hari</strong>. Jika melewati 12 hari belum diambil, pesanan akan secara <strong>otomatis diselesaikan sistem (Completed)</strong>.';
+            }
         } else {
             trackingWrap.classList.remove('hidden');
             trackingInput.value = currentTracking || '';
             if (shippedOption) {
                 shippedOption.textContent = 'Shipped (Dalam Pengiriman)';
+            }
+            if (deadlineNoticeText) {
+                deadlineNoticeText.innerHTML = '<strong>Aturan Pengiriman Kurir:</strong> Ketika status diubah ke <em>Dikirim</em>, tanggal otomatis dicatat. Pelanggan diberi rentang <strong>21 hari</strong>. Jika melewati 21 hari tanpa konfirmasi diterima, pesanan akan secara <strong>otomatis diselesaikan sistem (Completed)</strong>.';
             }
         }
 

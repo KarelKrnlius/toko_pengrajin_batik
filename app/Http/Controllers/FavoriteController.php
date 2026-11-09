@@ -31,14 +31,25 @@ class FavoriteController extends Controller
 
         if ($fav) {
             $fav->delete();
-            return back()->with('success', 'Produk dihapus dari favorit.');
+            $isFavorited = false;
+            $msg = 'Produk dihapus dari favorit.';
+        } else {
+            Favorite::create([
+                'user_id'    => Auth::id(),
+                'product_id' => $productId,
+            ]);
+            $isFavorited = true;
+            $msg = 'Produk ditambahkan ke favorit.';
         }
 
-        Favorite::create([
-            'user_id'    => Auth::id(),
-            'product_id' => $productId,
-        ]);
+        if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success'      => true,
+                'is_favorited' => $isFavorited,
+                'message'      => $msg,
+            ]);
+        }
 
-        return back()->with('success', 'Produk ditambahkan ke favorit.');
+        return back()->with('success', $msg);
     }
 }

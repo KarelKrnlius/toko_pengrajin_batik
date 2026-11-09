@@ -21,6 +21,9 @@ class OrderController extends Controller
      */
     public function index(Request $request): View
     {
+        // Eksekusi otomatis pesanan selesai jika melewati batas waktu (12 hari Ambil Mandiri / 21 hari Kurir)
+        Order::autoCompleteExpiredOrders();
+
         $query = Order::with(['user', 'items.product'])->latest();
 
         // Filter status
@@ -29,7 +32,7 @@ class OrderController extends Controller
                 $query->where('status', 'shipped')->where('shipping_courier', 'Ambil Mandiri');
             } elseif ($request->status === 'shipped') {
                 $query->where('status', 'shipped')->where('shipping_courier', '!=', 'Ambil Mandiri');
-            } elseif (in_array($request->status, ['pending', 'completed'])) {
+            } elseif (in_array($request->status, ['pending', 'completed', 'cancelled'])) {
                 $query->where('status', $request->status);
             }
         }
@@ -67,6 +70,7 @@ class OrderController extends Controller
             'shipped'      => Order::where('status', 'shipped')->where('shipping_courier', '!=', 'Ambil Mandiri')->count(),
             'ready_pickup' => Order::where('status', 'shipped')->where('shipping_courier', 'Ambil Mandiri')->count(),
             'completed'    => Order::where('status', 'completed')->count(),
+            'cancelled'    => Order::where('status', 'cancelled')->count(),
         ];
 
         $orders = $query->paginate(10)->withQueryString();
@@ -178,6 +182,7 @@ class OrderController extends Controller
                 'shipping_cost'    => $shippingCost,
                 'tracking_number'  => $trackingNumber,
                 'status'           => $validated['status'],
+                'shipped_at'       => $validated['status'] === 'shipped' ? now() : null,
                 'customer_name'    => $validated['customer_name'],
                 'customer_phone'   => $validated['customer_phone'],
                 'customer_address' => $validated['customer_address'],
@@ -255,9 +260,52 @@ class OrderController extends Controller
             $validated['tracking_number'] = null;
         }
 
+        // Catat tanggal saat status diubah menjadi dikirim / siap diambil
+        if ($validated['status'] === 'shipped') {
+            if ($order->status !== 'shipped' || ! $order->shipped_at) {
+                $validated['shipped_at'] = now();
+            }
+        } elseif ($validated['status'] === 'pending') {
+            $validated['shipped_at'] = null;
+        }
+
         $order->update($validated);
 
         return back()->with('success', "Status pesanan {$order->order_number} berhasil diperbarui.");
+    }
+
+    /**
+     * Batalkan pesanan, simpan keterangan alasan batal, dan kembalikan stok produk ke inventaris.
+     * Pesanan TIDAK dihapus, melainkan dipindahkan ke status 'cancelled'.
+     */
+    public function cancel(Request $request, Order $order): RedirectResponse
+    {
+        if ($order->status === 'cancelled') {
+            return back()->with('error', 'Pesanan ini sudah dibatalkan sebelumnya.');
+        }
+
+        $validated = $request->validate([
+            'reason' => 'required|string|max:1000',
+        ], [
+            'reason.required' => 'Keterangan alasan pembatalan wajib diisi.',
+        ]);
+
+        DB::transaction(function () use ($order, $validated) {
+            // Kembalikan stok produk jika pesanan dibatalkan
+            foreach ($order->items as $item) {
+                if ($item->product) {
+                    $item->product->increment('stock', $item->quantity);
+                }
+            }
+
+            $order->update([
+                'status'              => 'cancelled',
+                'cancellation_reason' => $validated['reason'],
+                'cancelled_at'        => now(),
+            ]);
+        });
+
+        return back()->with('success', "Pesanan {$order->order_number} berhasil dibatalkan dan stok produk telah dikembalikan ke inventaris.");
     }
 
     /**

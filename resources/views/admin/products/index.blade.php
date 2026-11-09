@@ -328,11 +328,11 @@
                                     <span class="material-symbols-outlined text-[18px]">edit</span>
                                 </button>
                                 <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST"
-                                      class="m-0 flex items-center"
-                                      onsubmit="return confirm('Hapus produk {{ addslashes($product->name) }}?')">
+                                      class="m-0 flex items-center" id="deleteProductForm_{{ $product->id }}">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit"
+                                    <button type="button"
+                                            onclick="confirmDeleteProduct({{ $product->id }}, '{{ addslashes($product->name) }}')"
                                             class="w-9 h-9 rounded-lg bg-surface-container hover:bg-error hover:text-on-error text-error flex items-center justify-center transition-colors flex-shrink-0"
                                             title="Hapus Produk">
                                         <span class="material-symbols-outlined text-[18px]">delete</span>
@@ -1342,8 +1342,33 @@ function submitCategory(e) {
     });
 }
 
-function deleteCategory(id, name) {
-    if (!confirm('Hapus kategori "' + name + '"?')) { return; }
+async function confirmDeleteProduct(id, name) {
+    const confirmed = await window.showConfirmDialog({
+        title: 'Hapus Produk',
+        message: `Apakah Anda yakin ingin menghapus produk "${name}" dari katalog? Tindakan ini tidak dapat dibatalkan.`,
+        okText: 'Ya, Hapus Produk',
+        cancelText: 'Batal',
+        icon: 'delete',
+        type: 'danger'
+    });
+
+    if (confirmed) {
+        const form = document.getElementById('deleteProductForm_' + id);
+        if (form) form.submit();
+    }
+}
+
+async function deleteCategory(id, name) {
+    const confirmed = await window.showConfirmDialog({
+        title: 'Hapus Kategori',
+        message: `Apakah Anda yakin ingin menghapus kategori "${name}"? Kategori yang dihapus tidak dapat dipulihkan.`,
+        okText: 'Ya, Hapus Kategori',
+        cancelText: 'Batal',
+        icon: 'folder_delete',
+        type: 'danger'
+    });
+
+    if (!confirmed) { return; }
 
     const row = document.getElementById('kat-row-' + id);
     if (row) {

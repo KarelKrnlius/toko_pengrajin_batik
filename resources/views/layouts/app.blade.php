@@ -159,6 +159,34 @@
         }
     </style>
 
+    {{-- Toast Notification Box --}}
+    <div id="appToastContainer" class="fixed top-24 right-5 z-[99999] flex flex-col gap-2 pointer-events-none max-w-sm w-full"></div>
+
+    {{-- Global Confirmation Modal --}}
+    <div id="globalConfirmModal" class="fixed inset-0 z-[99999] hidden flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">
+        <div class="bg-surface-container-lowest rounded-2xl max-w-md w-full p-6 shadow-2xl border border-outline-variant/60 flex flex-col gap-4 transform transition-all scale-95 duration-200" id="globalConfirmBox">
+            <div class="flex items-start gap-3.5">
+                <div id="globalConfirmIconWrap" class="w-11 h-11 rounded-xl bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0">
+                    <span id="globalConfirmIcon" class="material-symbols-outlined text-[24px]">delete</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h3 id="globalConfirmTitle" class="font-headline-sm text-base font-bold text-primary">Konfirmasi Hapus</h3>
+                    <p id="globalConfirmMessage" class="text-xs text-on-surface-variant mt-1 leading-relaxed">Apakah Anda yakin ingin menghapus item ini?</p>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-outline-variant/40">
+                <button type="button" id="globalConfirmBtnCancel" class="px-4 py-2 rounded-xl border border-outline-variant hover:bg-surface-container text-on-surface-variant font-bold text-xs uppercase tracking-wider transition">
+                    Batal
+                </button>
+                <button type="button" id="globalConfirmBtnOk" class="px-4 py-2 rounded-xl bg-error hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider transition shadow-sm flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[16px]">check</span>
+                    <span id="globalConfirmOkText">Ya, Hapus</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     @stack('styles')
 </head>
 <body class="bg-background font-body-md text-body-md text-on-surface">
@@ -248,6 +276,11 @@
                                 <span class="material-symbols-outlined text-secondary text-[18px]">receipt_long</span>
                                 <span>Manajemen Pesanan</span>
                             </a>
+                            <a href="{{ route('admin.finance.index') }}"
+                                class="flex items-center gap-space-sm px-space-md py-space-sm hover:bg-surface-container transition-colors text-on-surface font-label-md text-label-md">
+                                <span class="material-symbols-outlined text-secondary text-[18px]">payments</span>
+                                <span>Manajemen Keuangan</span>
+                            </a>
                             <a href="{{ route('admin.users.index', ['role' => 'user']) }}"
                                 class="flex items-center gap-space-sm px-space-md py-space-sm hover:bg-surface-container transition-colors text-on-surface font-label-md text-label-md">
                                 <span class="material-symbols-outlined text-secondary text-[18px]">group</span>
@@ -282,7 +315,7 @@
                            class="flex items-center gap-space-sm px-space-md py-space-sm hover:bg-surface-container transition-colors text-on-surface font-label-md text-label-md">
                             <span class="material-symbols-outlined text-secondary text-[18px]">shopping_bag</span>
                             <span>Keranjang</span>
-                            @php $cartCount = \App\Models\Cart::where('user_id', Auth::id())->sum('quantity'); @endphp
+                            @php $cartCount = \App\Models\Cart::where('user_id', Auth::id())->count(); @endphp
                             @if($cartCount > 0)
                                 <span class="ml-auto bg-secondary text-on-secondary text-[9px] font-bold px-1.5 py-0.5 rounded-full">{{ $cartCount }}</span>
                             @endif
@@ -346,6 +379,9 @@
                     </a>
                     <a href="{{ route('admin.orders.index') }}" class="flex items-center gap-space-xs font-label-lg text-label-lg text-secondary py-space-xs">
                         <span class="material-symbols-outlined text-[16px]">receipt_long</span> Manajemen Pesanan
+                    </a>
+                    <a href="{{ route('admin.finance.index') }}" class="flex items-center gap-space-xs font-label-lg text-label-lg text-secondary py-space-xs">
+                        <span class="material-symbols-outlined text-[16px]">payments</span> Manajemen Keuangan
                     </a>
                     <a href="{{ route('admin.users.index', ['role' => 'user']) }}" class="flex items-center gap-space-xs font-label-lg text-label-lg text-secondary py-space-xs">
                         <span class="material-symbols-outlined text-[16px]">group</span> Manajemen User
@@ -452,6 +488,109 @@
             userDropdown.classList.add('hidden');
         });
     }
+
+    // ── Global Toast Notification ──
+    window.showToast = function (message, type = 'success') {
+        const container = document.getElementById('appToastContainer');
+        if (!container) return;
+
+        const isSuccess = type === 'success';
+        const isError = type === 'error';
+
+        const toast = document.createElement('div');
+        toast.className = `pointer-events-auto flex items-start gap-3 p-3.5 rounded-xl shadow-lg border transition-all duration-300 transform translate-y-2 opacity-0 ${
+            isSuccess ? 'bg-white border-green-200 text-green-900 shadow-green-900/10' :
+            isError ? 'bg-white border-red-200 text-red-900 shadow-red-900/10' :
+            'bg-white border-amber-200 text-amber-900 shadow-amber-900/10'
+        }`;
+
+        const iconName = isSuccess ? 'check_circle' : (isError ? 'error' : 'info');
+        const iconColor = isSuccess ? 'text-green-600' : (isError ? 'text-red-600' : 'text-amber-600');
+
+        toast.innerHTML = `
+            <span class="material-symbols-outlined text-[20px] ${iconColor} flex-shrink-0 mt-0.5">${iconName}</span>
+            <div class="flex-1 text-xs font-semibold leading-relaxed">${message}</div>
+            <button type="button" class="text-outline hover:text-primary transition flex-shrink-0">
+                <span class="material-symbols-outlined text-[16px]">close</span>
+            </button>
+        `;
+
+        toast.querySelector('button').onclick = () => {
+            toast.classList.add('opacity-0', '-translate-y-2');
+            setTimeout(() => toast.remove(), 200);
+        };
+
+        container.appendChild(toast);
+        requestAnimationFrame(() => {
+            toast.classList.remove('opacity-0', 'translate-y-2');
+        });
+
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.classList.add('opacity-0', '-translate-y-2');
+                setTimeout(() => toast.remove(), 250);
+            }
+        }, 4000);
+    };
+
+    // Replace native window.alert with custom toast
+    window.alert = function (message) {
+        window.showToast(message, 'info');
+    };
+
+    // ── Global Custom Confirm Dialog ──
+    window.showConfirmDialog = function ({
+        title = 'Konfirmasi Hapus',
+        message = 'Apakah Anda yakin ingin menghapus item ini?',
+        okText = 'Ya, Hapus',
+        cancelText = 'Batal',
+        icon = 'delete',
+        type = 'danger'
+    } = {}) {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('globalConfirmModal');
+            const titleEl = document.getElementById('globalConfirmTitle');
+            const msgEl = document.getElementById('globalConfirmMessage');
+            const okBtn = document.getElementById('globalConfirmBtnOk');
+            const cancelBtn = document.getElementById('globalConfirmBtnCancel');
+            const okTextEl = document.getElementById('globalConfirmOkText');
+            const iconEl = document.getElementById('globalConfirmIcon');
+            const iconWrap = document.getElementById('globalConfirmIconWrap');
+
+            if (!modal) {
+                resolve(true);
+                return;
+            }
+
+            titleEl.textContent = title;
+            msgEl.textContent = message;
+            okTextEl.textContent = okText;
+            cancelBtn.textContent = cancelText;
+            iconEl.textContent = icon;
+
+            if (type === 'danger') {
+                iconWrap.className = 'w-11 h-11 rounded-xl bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0';
+                okBtn.className = 'px-4 py-2 rounded-xl bg-error hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider transition shadow-sm flex items-center gap-1.5 cursor-pointer';
+            } else {
+                iconWrap.className = 'w-11 h-11 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0';
+                okBtn.className = 'px-4 py-2 rounded-xl bg-primary hover:bg-secondary text-white font-bold text-xs uppercase tracking-wider transition shadow-sm flex items-center gap-1.5 cursor-pointer';
+            }
+
+            const close = (result) => {
+                modal.classList.add('hidden');
+                document.body.style.overflow = '';
+                okBtn.onclick = null;
+                cancelBtn.onclick = null;
+                resolve(result);
+            };
+
+            okBtn.onclick = () => close(true);
+            cancelBtn.onclick = () => close(false);
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        });
+    };
 </script>
 
 @stack('scripts')

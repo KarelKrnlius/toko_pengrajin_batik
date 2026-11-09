@@ -20,10 +20,13 @@ class Order extends Model
         'shipping_cost',
         'tracking_number',
         'status',
+        'shipped_at',
         'customer_name',
         'customer_phone',
         'customer_address',
         'notes',
+        'cancellation_reason',
+        'cancelled_at',
     ];
 
     protected function casts(): array
@@ -31,7 +34,74 @@ class Order extends Model
         return [
             'total_price'   => 'integer',
             'shipping_cost' => 'integer',
+            'shipped_at'    => 'datetime',
+            'cancelled_at'  => 'datetime',
         ];
+    }
+
+    /**
+     * Durasi batas waktu konfirmasi otomatis (Ambil Mandiri: 12 hari, Kurir: 21 hari).
+     */
+    public function getDeadlineDaysAttribute(): int
+    {
+        return $this->shipping_courier === 'Ambil Mandiri' ? 12 : 21;
+    }
+
+    /**
+     * Tanggal & jam batas akhir sebelum pesanan otomatis diselesaikan sistem.
+     */
+    public function getAutoCompleteDeadlineAttribute(): ?\Carbon\Carbon
+    {
+        $baseDate = $this->shipped_at ?? $this->created_at;
+        return $baseDate ? $baseDate->copy()->addDays($this->deadline_days) : null;
+    }
+
+    /**
+     * Sisa hari sebelum pesanan otomatis selesai.
+     */
+    public function getRemainingDaysAttribute(): int
+    {
+        $deadline = $this->auto_complete_deadline;
+        if (! $deadline) {
+            return 0;
+        }
+
+        $diff = (int) ceil(now()->floatDiffInDays($deadline, false));
+        return max(0, $diff);
+    }
+
+    /**
+     * Cek apakah pesanan telah melewati batas waktu otomatis selesai.
+     */
+    public function isPastDeadline(): bool
+    {
+        $deadline = $this->auto_complete_deadline;
+        return $deadline ? now()->greaterThanOrEqualTo($deadline) : false;
+    }
+
+    /**
+     * Eksekusi otomatis pesanan diterima jika telah melewati batas waktu (12 hari / 21 hari).
+     */
+    public static function autoCompleteExpiredOrders(): int
+    {
+        // 1. Lengkapi shipped_at jika ada pesanan shipped yang belum memiliki tanggal
+        self::where('status', 'shipped')
+            ->whereNull('shipped_at')
+            ->update(['shipped_at' => \Illuminate\Support\Facades\DB::raw('COALESCE(updated_at, created_at)')]);
+
+        // 2. Ambil semua pesanan shipped dan cek expired
+        $expiredOrders = self::where('status', 'shipped')
+            ->whereNotNull('shipped_at')
+            ->get()
+            ->filter(fn (Order $order) => $order->isPastDeadline());
+
+        $count = 0;
+        foreach ($expiredOrders as $order) {
+            $order->update(['status' => 'completed']);
+            $count++;
+        }
+
+        return $count;
     }
 
     /**

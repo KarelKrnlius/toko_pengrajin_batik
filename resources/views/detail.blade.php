@@ -167,6 +167,21 @@
                         <p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">{{ $product->description }}</p>
                     </div>
 
+                    {{-- Notifikasi Flash Pesan --}}
+                    @if(session('success'))
+                    <div class="p-3.5 bg-green-50 border border-green-200 rounded-xl text-green-900 text-xs flex items-center gap-2.5 shadow-sm">
+                        <span class="material-symbols-outlined text-[20px] text-green-600 flex-shrink-0">check_circle</span>
+                        <div class="flex-1 font-medium">{{ session('success') }}</div>
+                        <a href="{{ route('cart.index') }}" class="font-bold underline text-green-700 hover:text-green-900 flex-shrink-0">Lihat Keranjang</a>
+                    </div>
+                    @endif
+                    @if(session('error'))
+                    <div class="p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-900 text-xs flex items-center gap-2.5 shadow-sm">
+                        <span class="material-symbols-outlined text-[20px] text-red-600 flex-shrink-0">error</span>
+                        <div class="flex-1 font-medium">{{ session('error') }}</div>
+                    </div>
+                    @endif
+
                     <div class="flex flex-col gap-space-sm pt-space-xs">
                         @if($product->stock > 0)
                             @auth
@@ -184,24 +199,12 @@
                                 <span>Lengkapi Profil untuk Membeli</span>
                             </a>
                             @else
-                            @php
-                                $detailWaMsg = "Halo Juragan Batik, saya ingin memesan produk berikut:\n\n"
-                                    . "• Produk: " . $product->name . "\n"
-                                    . ($product->category ? "• Kategori: " . $product->category->name . "\n" : "")
-                                    . "• Harga: Rp " . number_format($product->price, 0, ',', '.') . "\n"
-                                    . "• Jumlah: 1 pcs\n\n"
-                                    . "Data Pemesan:\n"
-                                    . "• Nama: " . Auth::user()->name . "\n"
-                                    . "• Email: " . Auth::user()->email . "\n"
-                                    . "• No. Telepon: " . Auth::user()->phone . "\n"
-                                    . "• Alamat Pengiriman: " . Auth::user()->address;
-                                $detailWaUrl = "https://wa.me/6281382958012?text=" . urlencode($detailWaMsg);
-                            @endphp
-                            <a href="{{ $detailWaUrl }}" target="_blank" rel="noopener"
+                            {{-- Tombol Beli: Buka Modal Input Jumlah untuk WhatsApp --}}
+                            <button type="button" onclick="openBuyModal()"
                                class="w-full py-space-md px-space-lg bg-primary hover:bg-secondary text-on-primary font-label-lg text-label-lg rounded tracking-widest uppercase transition-all shadow-md flex items-center justify-center gap-space-sm group">
                                 <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">shopping_bag</span>
-                                <span>Pesan via WhatsApp</span>
-                            </a>
+                                <span>Beli Sekarang</span>
+                            </button>
                             @endif
                             @else
                             <a href="{{ route('login') }}"
@@ -235,14 +238,14 @@
                                     <span>{{ $isFav ? 'Hapus Favorit' : 'Tambah Favorit' }}</span>
                                 </button>
                             </form>
-                            <form action="{{ route('cart.store', $product->id) }}" method="POST" class="flex-1">
-                                @csrf
-                                <button type="submit"
-                                        class="w-full py-2.5 px-4 bg-secondary-container text-on-secondary-container hover:brightness-95 font-bold text-xs tracking-wider uppercase rounded-lg transition-all flex items-center justify-center gap-1.5">
-                                    <span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
-                                    <span>Keranjang</span>
-                                </button>
-                            </form>
+                            @if($product->stock > 0)
+                            {{-- Tombol Buka Modal Keranjang --}}
+                            <button type="button" onclick="openCartModal()"
+                                    class="flex-1 py-2.5 px-4 bg-secondary-container text-on-secondary-container hover:brightness-95 font-bold text-xs tracking-wider uppercase rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-sm">
+                                <span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+                                <span>Keranjang</span>
+                            </button>
+                            @endif
                         </div>
                         @endauth
                     </div>
@@ -340,6 +343,151 @@
     </div>
 </section>
 @endif
+
+{{-- ── MODAL MASUKKAN KE KERANJANG ── --}}
+@auth
+@if($product->stock > 0)
+<div id="cartModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all">
+    <div class="bg-surface-container-lowest rounded-2xl max-w-md w-full p-6 shadow-2xl border border-outline-variant/60 flex flex-col gap-4 transform transition-all scale-95 duration-200" id="cartModalBox">
+        <div class="flex items-center justify-between pb-3 border-b border-outline-variant/40">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-secondary text-[24px]">add_shopping_cart</span>
+                <h3 class="font-headline-sm text-base font-bold text-primary">Tambah ke Keranjang</h3>
+            </div>
+            <button type="button" onclick="closeCartModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:text-primary hover:bg-surface-container transition">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+
+        <div class="flex items-center gap-3 p-3 bg-surface-container-low rounded-xl">
+            @if($product->image)
+                <img src="{{ Storage::url($product->image) }}" alt="{{ $product->name }}" class="w-14 h-14 object-cover rounded-lg flex-shrink-0"/>
+            @endif
+            <div class="min-w-0 flex-1">
+                <span class="text-[10px] text-secondary font-bold uppercase tracking-wider block">{{ $product->category->name ?? 'BATIK' }}</span>
+                <h4 class="text-sm font-bold text-primary truncate">{{ $product->name }}</h4>
+                <span class="text-xs font-bold text-secondary">Rp {{ number_format($product->price, 0, ',', '.') }} <span class="text-[10px] font-normal text-outline">/ pcs</span></span>
+            </div>
+        </div>
+
+        <form action="{{ route('cart.store', $product->id) }}" method="POST" id="modalCartForm" class="flex flex-col gap-4">
+            @csrf
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <label class="text-xs font-bold text-primary uppercase tracking-wider">Masukkan Jumlah Barang:</label>
+                    <span class="text-xs text-outline">Stok: <strong class="text-primary font-bold">{{ $product->stock }}</strong> pcs</span>
+                </div>
+                <div class="flex items-center justify-between gap-3 bg-surface-container-low p-2 rounded-xl border border-outline-variant/50">
+                    <div class="flex items-center bg-surface-container-highest rounded-lg p-1 border border-outline-variant/60">
+                        <button type="button" onclick="adjustModalQty('cart', -1)" class="w-9 h-9 rounded-md bg-surface flex items-center justify-center text-primary hover:bg-surface-container transition shadow-sm font-bold">
+                            <span class="material-symbols-outlined text-[18px]">remove</span>
+                        </button>
+                        <input type="number" name="quantity" id="modalCartQtyInput" value="1" min="1" max="{{ $product->stock }}"
+                               class="w-14 text-center font-bold text-sm bg-transparent border-none text-primary focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                               oninput="validateModalQty('cart', this)">
+                        <button type="button" onclick="adjustModalQty('cart', 1)" class="w-9 h-9 rounded-md bg-surface flex items-center justify-center text-primary hover:bg-surface-container transition shadow-sm font-bold">
+                            <span class="material-symbols-outlined text-[18px]">add</span>
+                        </button>
+                    </div>
+                    <div class="text-right pr-2">
+                        <span class="block text-[10px] text-outline uppercase font-semibold">Subtotal</span>
+                        <span class="text-sm font-bold text-secondary" id="modalCartSubtotal">
+                            Rp {{ number_format($product->price, 0, ',', '.') }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+                <button type="button" onclick="closeCartModal()" class="flex-1 py-2.5 px-4 rounded-xl border border-outline-variant hover:bg-surface-container text-on-surface-variant font-bold text-xs uppercase tracking-wider transition">
+                    Batal
+                </button>
+                <button type="submit" class="flex-1 py-2.5 px-4 rounded-xl bg-secondary-container hover:brightness-95 text-on-secondary-container font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 shadow-sm">
+                    <span class="material-symbols-outlined text-[18px]">done</span>
+                    <span>Kirim ke Keranjang</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
+@endauth
+
+{{-- ── MODAL BELI SEKARANG (WHATSAPP) ── --}}
+@auth
+@if($product->stock > 0)
+<div id="buyModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all">
+    <div class="bg-surface-container-lowest rounded-2xl max-w-md w-full p-6 shadow-2xl border border-outline-variant/60 flex flex-col gap-4 transform transition-all scale-95 duration-200" id="buyModalBox">
+        <div class="flex items-center justify-between pb-3 border-b border-outline-variant/40">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-secondary text-[24px]">shopping_bag</span>
+                <h3 class="font-headline-sm text-base font-bold text-primary">Konfirmasi Pembelian via WhatsApp</h3>
+            </div>
+            <button type="button" onclick="closeBuyModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:text-primary hover:bg-surface-container transition">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+
+        <div class="flex items-center gap-3 p-3 bg-surface-container-low rounded-xl">
+            @if($product->image)
+                <img src="{{ Storage::url($product->image) }}" alt="{{ $product->name }}" class="w-14 h-14 object-cover rounded-lg flex-shrink-0"/>
+            @endif
+            <div class="min-w-0 flex-1">
+                <span class="text-[10px] text-secondary font-bold uppercase tracking-wider block">{{ $product->category->name ?? 'BATIK' }}</span>
+                <h4 class="text-sm font-bold text-primary truncate">{{ $product->name }}</h4>
+                <span class="text-xs font-bold text-secondary">Rp {{ number_format($product->price, 0, ',', '.') }} <span class="text-[10px] font-normal text-outline">/ pcs</span></span>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-4">
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <label class="text-xs font-bold text-primary uppercase tracking-wider">Ingin Beli Berapa Barang?</label>
+                    <span class="text-xs text-outline">Stok: <strong class="text-primary font-bold">{{ $product->stock }}</strong> pcs</span>
+                </div>
+                <div class="flex items-center justify-between gap-3 bg-surface-container-low p-2 rounded-xl border border-outline-variant/50">
+                    <div class="flex items-center bg-surface-container-highest rounded-lg p-1 border border-outline-variant/60">
+                        <button type="button" onclick="adjustModalQty('buy', -1)" class="w-9 h-9 rounded-md bg-surface flex items-center justify-center text-primary hover:bg-surface-container transition shadow-sm font-bold">
+                            <span class="material-symbols-outlined text-[18px]">remove</span>
+                        </button>
+                        <input type="number" id="modalBuyQtyInput" value="1" min="1" max="{{ $product->stock }}"
+                               class="w-14 text-center font-bold text-sm bg-transparent border-none text-primary focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                               oninput="validateModalQty('buy', this)">
+                        <button type="button" onclick="adjustModalQty('buy', 1)" class="w-9 h-9 rounded-md bg-surface flex items-center justify-center text-primary hover:bg-surface-container transition shadow-sm font-bold">
+                            <span class="material-symbols-outlined text-[18px]">add</span>
+                        </button>
+                    </div>
+                    <div class="text-right pr-2">
+                        <span class="block text-[10px] text-outline uppercase font-semibold">Total Pembayaran</span>
+                        <span class="text-base font-bold text-secondary" id="modalBuySubtotal">
+                            Rp {{ number_format($product->price, 0, ',', '.') }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3 bg-surface-container rounded-xl text-xs text-on-surface-variant flex flex-col gap-1 border border-outline-variant/30">
+                <span class="font-bold text-primary flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[15px] text-secondary">contact_phone</span>
+                    Tujuan Pemesanan:
+                </span>
+                <p>Pesanan akan langsung dialihkan ke WhatsApp resmi Juragan Batik: <strong class="text-primary">081382958012</strong> beserta rincian jumlah dan data pengiriman Anda.</p>
+            </div>
+
+            <div class="flex gap-2 pt-1">
+                <button type="button" onclick="closeBuyModal()" class="flex-1 py-2.5 px-4 rounded-xl border border-outline-variant hover:bg-surface-container text-on-surface-variant font-bold text-xs uppercase tracking-wider transition">
+                    Batal
+                </button>
+                <button type="button" onclick="submitBuyToWhatsApp()" class="flex-1 py-2.5 px-4 rounded-xl bg-primary hover:bg-secondary text-on-primary font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 shadow-md">
+                    <span class="material-symbols-outlined text-[18px]">chat</span>
+                    <span>Bayar ke WA</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+@endauth
 
 {{-- ── LIGHTBOX ZOOM ── --}}
 <div id="lightbox" onclick="closeLightboxOutside(event)">
@@ -470,7 +618,133 @@ wrap.addEventListener('touchend', () => { lbDragging = false; });
 
 // Escape key
 document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'Escape') {
+        closeLightbox();
+        closeCartModal();
+        closeBuyModal();
+    }
 });
+
+// Modal Logic
+const maxStock = {{ (int) $product->stock }};
+const unitPrice = {{ (int) $product->price }};
+
+function formatRupiah(num) {
+    return 'Rp ' + num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
+function openCartModal() {
+    const modal = document.getElementById('cartModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    const input = document.getElementById('modalCartQtyInput');
+    if (input) {
+        input.value = 1;
+        updateModalSubtotal('cart', 1);
+    }
+}
+
+function closeCartModal() {
+    const modal = document.getElementById('cartModal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+function openBuyModal() {
+    const modal = document.getElementById('buyModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    const input = document.getElementById('modalBuyQtyInput');
+    if (input) {
+        input.value = 1;
+        updateModalSubtotal('buy', 1);
+    }
+}
+
+function closeBuyModal() {
+    const modal = document.getElementById('buyModal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+function updateModalSubtotal(type, qty) {
+    const subtotal = qty * unitPrice;
+    if (type === 'cart') {
+        const el = document.getElementById('modalCartSubtotal');
+        if (el) el.innerText = formatRupiah(subtotal);
+    } else {
+        const el = document.getElementById('modalBuySubtotal');
+        if (el) el.innerText = formatRupiah(subtotal);
+    }
+}
+
+function adjustModalQty(type, delta) {
+    const inputId = type === 'cart' ? 'modalCartQtyInput' : 'modalBuyQtyInput';
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    let val = parseInt(input.value) || 1;
+    val += delta;
+    if (val < 1) val = 1;
+    if (val > maxStock) val = maxStock;
+    input.value = val;
+    updateModalSubtotal(type, val);
+}
+
+function validateModalQty(type, input) {
+    let val = parseInt(input.value);
+    if (isNaN(val) || val < 1) {
+        val = 1;
+    } else if (val > maxStock) {
+        val = maxStock;
+        input.value = maxStock;
+    }
+    updateModalSubtotal(type, val);
+}
+
+function submitBuyToWhatsApp() {
+    const input = document.getElementById('modalBuyQtyInput');
+    let qty = input ? (parseInt(input.value) || 1) : 1;
+    if (qty < 1) qty = 1;
+    if (qty > maxStock) qty = maxStock;
+
+    const subtotal = qty * unitPrice;
+    const subtotalFormatted = formatRupiah(subtotal);
+    const unitPriceFormatted = formatRupiah(unitPrice);
+
+    @auth
+    const userName = @json(Auth::user()->name);
+    const userEmail = @json(Auth::user()->email);
+    const userPhone = @json(Auth::user()->phone ?? '-');
+    const userAddress = @json(Auth::user()->address ?? '-');
+    @else
+    const userName = '-';
+    const userEmail = '-';
+    const userPhone = '-';
+    const userAddress = '-';
+    @endauth
+
+    const productName = @json($product->name);
+    const categoryName = @json($product->category->name ?? 'Batik');
+
+    let msg = `Halo Juragan Batik, saya ingin memesan produk berikut:\n\n` +
+        `• Produk: ${productName}\n` +
+        `• Kategori: ${categoryName}\n` +
+        `• Harga Satuan: ${unitPriceFormatted}\n` +
+        `• Jumlah Beli: ${qty} pcs\n` +
+        `• Total Pembayaran: ${subtotalFormatted}\n\n` +
+        `Data Pemesan:\n` +
+        `• Nama: ${userName}\n` +
+        `• Email: ${userEmail}\n` +
+        `• No. Telepon: ${userPhone}\n` +
+        `• Alamat Pengiriman: ${userAddress}`;
+
+    const url = 'https://wa.me/6281382958012?text=' + encodeURIComponent(msg);
+    closeBuyModal();
+    window.open(url, '_blank');
+}
 </script>
 @endpush

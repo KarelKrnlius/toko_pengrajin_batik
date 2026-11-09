@@ -15,7 +15,7 @@
         <p class="text-sm text-on-surface-variant mt-1">{{ $carts->count() }} produk dalam keranjang</p>
     </div>
 
-    @if(session('success'))
+    @if(session('success') && session('checkout_success'))
     <div class="mb-6 p-4 sm:p-5 bg-emerald-50 border border-emerald-200 rounded-2xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div class="flex items-start sm:items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0 text-emerald-600">
@@ -33,6 +33,11 @@
             Buka WhatsApp
         </a>
         @endif
+    </div>
+    @elseif(session('success'))
+    <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-2xl shadow-sm flex items-center gap-3 text-green-900">
+        <span class="material-symbols-outlined text-[22px] text-green-600">check_circle</span>
+        <p class="text-sm font-medium">{{ session('success') }}</p>
     </div>
     @endif
 
@@ -74,66 +79,110 @@
     </div>
     @else
 
+    @php
+        $hasOutOfStock = $carts->contains(fn($c) => $c->product->stock <= 0);
+        $hasOverStock = $carts->contains(fn($c) => $c->product->stock > 0 && $c->quantity > $c->product->stock);
+        $canCheckout = !$hasOutOfStock && !$hasOverStock;
+    @endphp
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-space-lg">
 
         {{-- Daftar Produk --}}
         <div class="lg:col-span-2 flex flex-col gap-3">
             @foreach($carts as $cart)
-            <div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant overflow-hidden flex">
+            @php
+                $isHabis = $cart->product->stock <= 0;
+                $isKurang = !$isHabis && ($cart->quantity > $cart->product->stock);
+            @endphp
+            <div class="bg-surface-container-lowest rounded-xl shadow-sm border {{ $isHabis || $isKurang ? 'border-red-300 bg-red-50/20' : 'border-outline-variant' }} overflow-hidden flex flex-col sm:flex-row">
 
-                {{-- Gambar --}}
-                <div class="w-24 flex-shrink-0 bg-surface-container">
-                    @if($cart->product->image)
-                        <img src="{{ Storage::url($cart->product->image) }}" alt="{{ $cart->product->name }}"
-                             class="w-full h-full object-cover" style="aspect-ratio:3/4;"/>
-                    @else
-                        <div class="w-full h-full flex items-center justify-center" style="aspect-ratio:3/4;">
-                            <span class="material-symbols-outlined text-[28px] text-outline">draw</span>
-                        </div>
-                    @endif
-                </div>
-
-                {{-- Info --}}
-                <div class="flex-1 p-4 flex flex-col justify-between gap-2 min-w-0">
-                    <div>
-                        <div class="flex items-start justify-between gap-2">
-                            <div class="min-w-0">
-                                <a href="{{ route('product.show', $cart->product->id) }}"
-                                   class="text-sm font-bold text-primary hover:text-secondary transition-colors line-clamp-1">
-                                    {{ $cart->product->name }}
-                                </a>
-                                <span class="text-[11px] text-on-surface-variant">{{ $cart->product->category->name ?? '-' }}</span>
+                <div class="flex flex-1">
+                    {{-- Gambar --}}
+                    <div class="w-24 sm:w-28 flex-shrink-0 bg-surface-container relative">
+                        @if($cart->product->image)
+                            <img src="{{ Storage::url($cart->product->image) }}" alt="{{ $cart->product->name }}"
+                                 class="w-full h-full object-cover {{ $isHabis ? 'grayscale opacity-60' : '' }}" style="aspect-ratio:3/4;"/>
+                        @else
+                            <div class="w-full h-full flex items-center justify-center" style="aspect-ratio:3/4;">
+                                <span class="material-symbols-outlined text-[28px] text-outline">draw</span>
                             </div>
-                            <form action="{{ route('cart.destroy', $cart->id) }}" method="POST" class="flex-shrink-0"
-                                  onsubmit="return confirm('Hapus dari keranjang?')">
-                                @csrf @method('DELETE')
-                                <button type="submit"
-                                        class="w-8 h-8 rounded-full bg-surface-container hover:bg-error hover:text-on-error text-error flex items-center justify-center transition-colors">
-                                    <span class="material-symbols-outlined text-[16px]">delete</span>
-                                </button>
-                            </form>
-                        </div>
-                        <p class="text-sm font-bold text-primary mt-1">
-                            Rp {{ number_format($cart->product->price, 0, ',', '.') }}
-                        </p>
+                        @endif
+
+                        @if($isHabis)
+                            <div class="absolute inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center p-1 text-center">
+                                <span class="text-[10px] font-bold text-white bg-error px-1.5 py-0.5 rounded uppercase tracking-wider">Habis</span>
+                            </div>
+                        @endif
                     </div>
 
-                    {{-- Qty --}}
-                    <div class="flex items-center justify-between">
-                        <form action="{{ route('cart.update', $cart->id) }}" method="POST" class="flex items-center gap-1">
-                            @csrf @method('PUT')
-                            <button type="button" onclick="this.nextElementSibling.value = Math.max(1, parseInt(this.nextElementSibling.value)-1); this.form.submit()"
-                                    class="w-7 h-7 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary flex items-center justify-center transition-colors">
-                                <span class="material-symbols-outlined text-[14px]">remove</span>
-                            </button>
-                            <input type="text" name="quantity" value="{{ $cart->quantity }}" readonly
-                                   class="w-10 text-center bg-surface-container-low border border-outline-variant rounded-lg text-sm font-bold text-primary py-1"/>
-                            <button type="button" onclick="this.previousElementSibling.value = Math.min({{ $cart->product->stock }}, parseInt(this.previousElementSibling.value)+1); this.form.submit()"
-                                    class="w-7 h-7 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary flex items-center justify-center transition-colors">
-                                <span class="material-symbols-outlined text-[14px]">add</span>
-                            </button>
-                        </form>
-                        <span class="text-xs text-on-surface-variant">Subtotal: <strong class="text-primary">Rp {{ number_format($cart->product->price * $cart->quantity, 0, ',', '.') }}</strong></span>
+                    {{-- Info --}}
+                    <div class="flex-1 p-3.5 sm:p-4 flex flex-col justify-between gap-2 min-w-0">
+                        <div>
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="min-w-0">
+                                    <a href="{{ route('product.show', $cart->product->id) }}"
+                                       class="text-sm font-bold text-primary hover:text-secondary transition-colors line-clamp-1">
+                                        {{ $cart->product->name }}
+                                    </a>
+                                    <span class="text-[11px] text-on-surface-variant">{{ $cart->product->category->name ?? '-' }}</span>
+                                </div>
+                                <form action="{{ route('cart.destroy', $cart->id) }}" method="POST" class="flex-shrink-0" id="deleteCartForm_{{ $cart->id }}">
+                                    @csrf @method('DELETE')
+                                    <button type="button"
+                                            onclick="confirmDeleteCart({{ $cart->id }}, '{{ addslashes($cart->product->name) }}')"
+                                            class="w-8 h-8 rounded-full bg-surface-container hover:bg-error hover:text-on-error text-error flex items-center justify-center transition-colors"
+                                            title="Hapus barang">
+                                        <span class="material-symbols-outlined text-[16px]">delete</span>
+                                    </button>
+                                </form>
+                            </div>
+
+                            <p class="text-sm font-bold text-primary mt-1">
+                                Rp {{ number_format($cart->product->price, 0, ',', '.') }}
+                            </p>
+
+                            {{-- Keterangan Stok Habis / Berkurang --}}
+                            @if($isHabis)
+                                <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-100 text-red-800 text-[11px] font-bold border border-red-200">
+                                    <span class="material-symbols-outlined text-[15px]">cancel</span>
+                                    <span>Produk Habis — Tidak dapat dibeli</span>
+                                </div>
+                            @elseif($isKurang)
+                                <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 text-[11px] font-bold border border-amber-300">
+                                    <span class="material-symbols-outlined text-[15px] text-amber-700">warning</span>
+                                    <span>Produk sisa {{ $cart->product->stock }} (tidak bisa dibeli {{ $cart->quantity }} pcs). Mohon kurangi jumlah pesanan.</span>
+                                </div>
+                            @endif
+                        </div>
+
+                        {{-- Qty --}}
+                        <div class="flex items-center justify-between flex-wrap gap-2 pt-2 border-t border-outline-variant/30">
+                            @if(!$isHabis)
+                            <form action="{{ route('cart.update', $cart->id) }}" method="POST" class="flex items-center gap-1">
+                                @csrf @method('PUT')
+                                <button type="button" onclick="this.nextElementSibling.value = Math.max(1, parseInt(this.nextElementSibling.value)-1); this.form.submit()"
+                                        class="w-7 h-7 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary flex items-center justify-center transition-colors">
+                                    <span class="material-symbols-outlined text-[14px]">remove</span>
+                                </button>
+                                <input type="text" name="quantity" value="{{ $cart->quantity }}" readonly
+                                       class="w-10 text-center bg-surface-container-low border border-outline-variant rounded-lg text-sm font-bold text-primary py-1"/>
+                                <button type="button" onclick="this.previousElementSibling.value = Math.min({{ $cart->product->stock }}, parseInt(this.previousElementSibling.value)+1); this.form.submit()"
+                                        class="w-7 h-7 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary flex items-center justify-center transition-colors"
+                                        {{ $cart->quantity >= $cart->product->stock ? 'disabled' : '' }}>
+                                    <span class="material-symbols-outlined text-[14px]">add</span>
+                                </button>
+                                <span class="text-[10px] text-outline ml-1">Tersedia: {{ $cart->product->stock }}</span>
+                            </form>
+                            @else
+                            <span class="text-xs text-error font-semibold flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[14px]">block</span> Tidak dapat dibeli
+                            </span>
+                            @endif
+
+                            <span class="text-xs text-on-surface-variant">
+                                Subtotal: <strong class="text-primary font-bold">Rp {{ number_format($cart->product->price * $cart->quantity, 0, ',', '.') }}</strong>
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -147,9 +196,21 @@
 
                 <div class="flex flex-col gap-2 text-sm">
                     @foreach($carts as $cart)
-                    <div class="flex justify-between text-on-surface-variant">
-                        <span class="line-clamp-1">{{ $cart->product->name }} ({{ $cart->quantity }}x)</span>
-                        <span class="font-semibold text-primary whitespace-nowrap">Rp {{ number_format($cart->product->price * $cart->quantity, 0, ',', '.') }}</span>
+                    @php
+                        $itemInvalid = $cart->product->stock <= 0 || $cart->quantity > $cart->product->stock;
+                    @endphp
+                    <div class="flex justify-between items-center text-on-surface-variant text-xs">
+                        <div class="flex items-center gap-1 min-w-0 pr-2">
+                            @if($itemInvalid)
+                                <span class="material-symbols-outlined text-[14px] text-error flex-shrink-0">error</span>
+                            @endif
+                            <span class="truncate {{ $itemInvalid ? 'text-error font-semibold line-through' : '' }}">
+                                {{ $cart->product->name }} ({{ $cart->quantity }}x)
+                            </span>
+                        </div>
+                        <span class="font-semibold {{ $itemInvalid ? 'text-error' : 'text-primary' }} whitespace-nowrap">
+                            Rp {{ number_format($cart->product->price * $cart->quantity, 0, ',', '.') }}
+                        </span>
                     </div>
                     @endforeach
                 </div>
@@ -160,6 +221,19 @@
                         <span class="font-serif text-2xl font-bold text-primary">Rp {{ number_format($total, 0, ',', '.') }}</span>
                     </div>
                 </div>
+
+                {{-- Alert jika ada kendala stok --}}
+                @if(!$canCheckout)
+                <div class="p-3 bg-red-50 border border-red-200 rounded-xl text-red-900 text-xs flex flex-col gap-1">
+                    <div class="flex items-center gap-1.5 font-bold">
+                        <span class="material-symbols-outlined text-[16px] text-red-600">report_problem</span>
+                        <span>Tidak Bisa Melanjutkan Checkout</span>
+                    </div>
+                    <p class="text-[11px] text-red-700 leading-normal">
+                        Terdapat produk yang <strong>stoknya habis</strong> atau <strong>jumlah pesanan melebihi stok yang tersisa</strong>. Silakan hapus produk habis atau sesuaikan kuantitas terlebih dahulu.
+                    </p>
+                </div>
+                @endif
 
                 @if(!Auth::user()->isProfileComplete())
                 <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs flex flex-col gap-1.5">
@@ -180,8 +254,9 @@
                     @csrf
                     <button type="submit"
                             id="checkoutBtn"
-                            class="w-full py-4 px-6 text-white font-bold text-sm tracking-wider uppercase rounded-xl shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-3 cursor-pointer"
-                            style="background-color: #25D366;">
+                            {{ !$canCheckout ? 'disabled' : '' }}
+                            class="w-full py-4 px-6 text-white font-bold text-sm tracking-wider uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-3 {{ $canCheckout ? 'hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer' : 'opacity-50 cursor-not-allowed' }}"
+                            style="background-color: {{ $canCheckout ? '#25D366' : '#9ca3af' }};">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 flex-shrink-0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
                         <span>Checkout via WhatsApp</span>
                     </button>
@@ -199,6 +274,22 @@
 </div>
 
 <script>
+    async function confirmDeleteCart(cartId, productName) {
+        const confirmed = await window.showConfirmDialog({
+            title: 'Hapus dari Keranjang',
+            message: `Apakah Anda yakin ingin menghapus "${productName}" dari keranjang belanja?`,
+            okText: 'Ya, Hapus',
+            cancelText: 'Batal',
+            icon: 'delete',
+            type: 'danger'
+        });
+
+        if (confirmed) {
+            const form = document.getElementById('deleteCartForm_' + cartId);
+            if (form) form.submit();
+        }
+    }
+
     document.getElementById('checkoutForm')?.addEventListener('submit', function () {
         const btn = document.getElementById('checkoutBtn');
         if (btn) {

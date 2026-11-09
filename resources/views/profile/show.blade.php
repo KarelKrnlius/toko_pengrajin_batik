@@ -78,7 +78,7 @@
                        class="p-3 bg-surface-container-low hover:bg-surface-container rounded-xl transition-colors border border-outline-variant flex flex-col justify-between">
                         <div class="flex items-center justify-between text-secondary mb-1">
                             <span class="material-symbols-outlined text-[20px]">shopping_bag</span>
-                            <span class="font-bold text-base text-primary">{{ $user->carts()->sum('quantity') }}</span>
+                            <span class="font-bold text-base text-primary">{{ $user->carts()->count() }}</span>
                         </div>
                         <span class="text-xs text-on-surface-variant font-medium">Keranjang</span>
                     </a>

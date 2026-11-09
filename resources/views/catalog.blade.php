@@ -366,6 +366,27 @@
                                 {{ $product->category->name ?? 'Batik' }}
                             </span>
                         </div>
+                        {{-- Tombol Love / Favorit langsung di kartu katalog --}}
+                        <div class="absolute top-2.5 right-2.5 z-10">
+                            @auth
+                                @php $isCardFav = in_array($product->id, $userFavoriteIds ?? []); @endphp
+                                <button type="button"
+                                        onclick="toggleCatalogFav({{ $product->id }}, this)"
+                                        class="w-8 h-8 rounded-full bg-surface/90 hover:bg-surface backdrop-blur-sm shadow-md flex items-center justify-center transition-transform active:scale-90 group/fav"
+                                        title="{{ $isCardFav ? 'Hapus dari Favorit' : 'Tambah ke Favorit' }}">
+                                    <span class="material-symbols-outlined text-[18px] text-error transition-all"
+                                          style="{{ $isCardFav ? 'font-variation-settings: \'FILL\' 1;' : 'font-variation-settings: \'FILL\' 0;' }}">
+                                        favorite
+                                    </span>
+                                </button>
+                            @else
+                                <a href="{{ route('login') }}"
+                                   class="w-8 h-8 rounded-full bg-surface/90 hover:bg-surface backdrop-blur-sm shadow-md flex items-center justify-center transition-transform active:scale-90 text-error"
+                                   title="Login untuk menyimpan favorit">
+                                    <span class="material-symbols-outlined text-[18px]">favorite</span>
+                                </a>
+                            @endauth
+                        </div>
                         <div class="absolute bottom-3 left-3 right-3 bg-surface/90 backdrop-blur-md px-3 py-1.5 rounded-lg text-center transform translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
                             <span class="font-label-sm text-[10px] text-primary font-bold">
                                 Stok tersedia: {{ $product->stock }} pcs
@@ -400,22 +421,19 @@
                                 </a>
                                 @auth
                                     @if(Auth::user()->isProfileComplete())
-                                        @php
-                                            $catWaMsg = "Halo Juragan Batik, saya ingin memesan produk berikut:\n\n"
-                                                . "• Produk: " . $product->name . "\n"
-                                                . "• Harga: Rp " . number_format($product->price, 0, ',', '.') . "\n\n"
-                                                . "Data Pemesan:\n"
-                                                . "• Nama: " . Auth::user()->name . "\n"
-                                                . "• Email: " . Auth::user()->email . "\n"
-                                                . "• No. Telepon: " . Auth::user()->phone . "\n"
-                                                . "• Alamat Pengiriman: " . Auth::user()->address;
-                                            $catWaUrl = "https://wa.me/6281382958012?text=" . urlencode($catWaMsg);
-                                        @endphp
-                                        <a href="{{ $catWaUrl }}" target="_blank" rel="noopener"
-                                           class="py-1.5 rounded-lg bg-primary hover:bg-secondary text-on-primary shadow-sm transition-colors flex items-center justify-center gap-1 text-[11px] font-semibold">
+                                        @if($product->stock > 0)
+                                        <button type="button"
+                                                onclick="openCatalogBuyModal({{ $product->id }}, {{ json_encode($product->name) }}, {{ json_encode($product->category->name ?? 'Batik') }}, {{ $product->price }}, {{ $product->stock }}, {{ json_encode($product->image ? Storage::url($product->image) : null) }})"
+                                                class="py-1.5 rounded-lg bg-primary hover:bg-secondary text-on-primary shadow-sm transition-colors flex items-center justify-center gap-1 text-[11px] font-semibold">
                                             <span class="material-symbols-outlined text-[13px]">shopping_bag</span>
                                             <span>Beli</span>
-                                        </a>
+                                        </button>
+                                        @else
+                                        <button disabled
+                                                class="py-1.5 rounded-lg bg-surface-container-high text-on-surface-variant opacity-60 text-center text-[11px] font-semibold cursor-not-allowed">
+                                            Habis
+                                        </button>
+                                        @endif
                                     @else
                                         <a href="{{ route('profile.show') }}"
                                            class="py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white shadow-sm transition-colors flex items-center justify-center gap-1 text-[11px] font-semibold"
@@ -474,6 +492,81 @@
 
 </div>
 </div>
+
+{{-- ── MODAL BELI SEKARANG (WHATSAPP) KATALOG ── --}}
+@auth
+<div id="catalogBuyModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all">
+    <div class="bg-surface-container-lowest rounded-2xl max-w-md w-full p-6 shadow-2xl border border-outline-variant/60 flex flex-col gap-4 transform transition-all scale-95 duration-200">
+        <div class="flex items-center justify-between pb-3 border-b border-outline-variant/40">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-secondary text-[24px]">shopping_bag</span>
+                <h3 class="font-headline-sm text-base font-bold text-primary">Konfirmasi Pembelian via WhatsApp</h3>
+            </div>
+            <button type="button" onclick="closeCatalogBuyModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:text-primary hover:bg-surface-container transition">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+
+        <div class="flex items-center gap-3 p-3 bg-surface-container-low rounded-xl">
+            <img id="catBuyImg" src="" alt="Produk" class="w-14 h-14 object-cover rounded-lg flex-shrink-0 hidden"/>
+            <div id="catBuyImgPlaceholder" class="w-14 h-14 bg-surface-container rounded-lg flex items-center justify-center flex-shrink-0 text-outline">
+                <span class="material-symbols-outlined text-[24px]">draw</span>
+            </div>
+            <div class="min-w-0 flex-1">
+                <span class="text-[10px] text-secondary font-bold uppercase tracking-wider block" id="catBuyCategory">BATIK</span>
+                <h4 class="text-sm font-bold text-primary truncate" id="catBuyName">Nama Produk</h4>
+                <span class="text-xs font-bold text-secondary" id="catBuyPrice">Rp 0 <span class="text-[10px] font-normal text-outline">/ pcs</span></span>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-4">
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <label class="text-xs font-bold text-primary uppercase tracking-wider">Ingin Beli Berapa Barang?</label>
+                    <span class="text-xs text-outline">Stok: <strong class="text-primary font-bold" id="catBuyStock">0</strong> pcs</span>
+                </div>
+                <div class="flex items-center justify-between gap-3 bg-surface-container-low p-2 rounded-xl border border-outline-variant/50">
+                    <div class="flex items-center bg-surface-container-highest rounded-lg p-1 border border-outline-variant/60">
+                        <button type="button" onclick="adjustCatBuyQty(-1)" class="w-9 h-9 rounded-md bg-surface flex items-center justify-center text-primary hover:bg-surface-container transition shadow-sm font-bold">
+                            <span class="material-symbols-outlined text-[18px]">remove</span>
+                        </button>
+                        <input type="number" id="catBuyQtyInput" value="1" min="1"
+                               class="w-14 text-center font-bold text-sm bg-transparent border-none text-primary focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                               oninput="validateCatBuyQty(this)">
+                        <button type="button" onclick="adjustCatBuyQty(1)" class="w-9 h-9 rounded-md bg-surface flex items-center justify-center text-primary hover:bg-surface-container transition shadow-sm font-bold">
+                            <span class="material-symbols-outlined text-[18px]">add</span>
+                        </button>
+                    </div>
+                    <div class="text-right pr-2">
+                        <span class="block text-[10px] text-outline uppercase font-semibold">Total Pembayaran</span>
+                        <span class="text-base font-bold text-secondary" id="catBuySubtotal">
+                            Rp 0
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3 bg-surface-container rounded-xl text-xs text-on-surface-variant flex flex-col gap-1 border border-outline-variant/30">
+                <span class="font-bold text-primary flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[15px] text-secondary">contact_phone</span>
+                    Tujuan Pemesanan:
+                </span>
+                <p>Pesanan akan langsung dialihkan ke WhatsApp resmi Juragan Batik: <strong class="text-primary">081382958012</strong> beserta rincian jumlah dan data pengiriman Anda.</p>
+            </div>
+
+            <div class="flex gap-2 pt-1">
+                <button type="button" onclick="closeCatalogBuyModal()" class="flex-1 py-2.5 px-4 rounded-xl border border-outline-variant hover:bg-surface-container text-on-surface-variant font-bold text-xs uppercase tracking-wider transition">
+                    Batal
+                </button>
+                <button type="button" onclick="submitCatBuyToWhatsApp()" class="flex-1 py-2.5 px-4 rounded-xl bg-primary hover:bg-secondary text-on-primary font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 shadow-md">
+                    <span class="material-symbols-outlined text-[18px]">chat</span>
+                    <span>Bayar ke WA</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+@endauth
 
 @endsection
 
@@ -564,8 +657,162 @@ function toggleEntireFilter() {
     }
 }
 
+async function toggleCatalogFav(productId, btn) {
+    const icon = btn.querySelector('.material-symbols-outlined');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+    try {
+        const response = await fetch(`/favorit/${productId}/toggle`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken || ''
+            }
+        });
+
+        const data = await response.json();
+        if (data && data.success) {
+            if (data.is_favorited) {
+                icon.style.fontVariationSettings = "'FILL' 1";
+                btn.setAttribute('title', 'Hapus dari Favorit');
+            } else {
+                icon.style.fontVariationSettings = "'FILL' 0";
+                btn.setAttribute('title', 'Tambah ke Favorit');
+            }
+        }
+    } catch (e) {
+        console.error('Gagal toggle favorit:', e);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     syncRange();
+});
+
+// Modal Beli Sekarang Katalog (WhatsApp)
+let currentCatProduct = null;
+
+function formatRupiahCat(num) {
+    return 'Rp ' + num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
+function openCatalogBuyModal(id, name, category, price, stock, imageUrl) {
+    currentCatProduct = { id, name, category, price, stock };
+
+    const modal = document.getElementById('catalogBuyModal');
+    if (!modal) return;
+
+    document.getElementById('catBuyName').innerText = name;
+    document.getElementById('catBuyCategory').innerText = category.toUpperCase();
+    document.getElementById('catBuyPrice').innerHTML = formatRupiahCat(price) + ' <span class="text-[10px] font-normal text-outline">/ pcs</span>';
+    document.getElementById('catBuyStock').innerText = stock;
+
+    const imgEl = document.getElementById('catBuyImg');
+    const imgPlaceholder = document.getElementById('catBuyImgPlaceholder');
+    if (imageUrl) {
+        imgEl.src = imageUrl;
+        imgEl.classList.remove('hidden');
+        if (imgPlaceholder) imgPlaceholder.classList.add('hidden');
+    } else {
+        imgEl.classList.add('hidden');
+        if (imgPlaceholder) imgPlaceholder.classList.remove('hidden');
+    }
+
+    const input = document.getElementById('catBuyQtyInput');
+    if (input) {
+        input.value = 1;
+        input.max = stock;
+    }
+    updateCatBuySubtotal(1);
+
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeCatalogBuyModal() {
+    const modal = document.getElementById('catalogBuyModal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+function updateCatBuySubtotal(qty) {
+    if (!currentCatProduct) return;
+    const subtotal = qty * currentCatProduct.price;
+    const el = document.getElementById('catBuySubtotal');
+    if (el) el.innerText = formatRupiahCat(subtotal);
+}
+
+function adjustCatBuyQty(delta) {
+    if (!currentCatProduct) return;
+    const input = document.getElementById('catBuyQtyInput');
+    if (!input) return;
+    let val = parseInt(input.value) || 1;
+    val += delta;
+    if (val < 1) val = 1;
+    if (val > currentCatProduct.stock) val = currentCatProduct.stock;
+    input.value = val;
+    updateCatBuySubtotal(val);
+}
+
+function validateCatBuyQty(input) {
+    if (!currentCatProduct) return;
+    let val = parseInt(input.value);
+    if (isNaN(val) || val < 1) {
+        val = 1;
+    } else if (val > currentCatProduct.stock) {
+        val = currentCatProduct.stock;
+        input.value = currentCatProduct.stock;
+    }
+    updateCatBuySubtotal(val);
+}
+
+function submitCatBuyToWhatsApp() {
+    if (!currentCatProduct) return;
+    const input = document.getElementById('catBuyQtyInput');
+    let qty = input ? (parseInt(input.value) || 1) : 1;
+    if (qty < 1) qty = 1;
+    if (qty > currentCatProduct.stock) qty = currentCatProduct.stock;
+
+    const subtotal = qty * currentCatProduct.price;
+    const subtotalFormatted = formatRupiahCat(subtotal);
+    const unitPriceFormatted = formatRupiahCat(currentCatProduct.price);
+
+    @auth
+    const userName = @json(Auth::user()->name);
+    const userEmail = @json(Auth::user()->email);
+    const userPhone = @json(Auth::user()->phone ?? '-');
+    const userAddress = @json(Auth::user()->address ?? '-');
+    @else
+    const userName = '-';
+    const userEmail = '-';
+    const userPhone = '-';
+    const userAddress = '-';
+    @endauth
+
+    let msg = `Halo Juragan Batik, saya ingin memesan produk berikut:\n\n` +
+        `• Produk: ${currentCatProduct.name}\n` +
+        `• Kategori: ${currentCatProduct.category}\n` +
+        `• Harga Satuan: ${unitPriceFormatted}\n` +
+        `• Jumlah Beli: ${qty} pcs\n` +
+        `• Total Pembayaran: ${subtotalFormatted}\n\n` +
+        `Data Pemesan:\n` +
+        `• Nama: ${userName}\n` +
+        `• Email: ${userEmail}\n` +
+        `• No. Telepon: ${userPhone}\n` +
+        `• Alamat Pengiriman: ${userAddress}`;
+
+    const url = 'https://wa.me/6281382958012?text=' + encodeURIComponent(msg);
+    closeCatalogBuyModal();
+    window.open(url, '_blank');
+}
+
+// Escape key to close modal
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        closeCatalogBuyModal();
+    }
 });
 </script>
 @endpush

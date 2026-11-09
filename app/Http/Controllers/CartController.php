@@ -30,19 +30,25 @@ class CartController extends Controller
             return back()->with('error', 'Produk ini sedang habis.');
         }
 
+        $qtyToAdd = max(1, (int) $request->input('quantity', 1));
+
+        if ($qtyToAdd > $product->stock) {
+            return back()->with('error', "Jumlah yang diinginkan ({$qtyToAdd}) melebihi stok yang tersedia (Maksimal: {$product->stock} pcs).");
+        }
+
         $cart = Cart::firstOrCreate(
             ['user_id' => Auth::id(), 'product_id' => $productId],
             ['quantity' => 0]
         );
 
-        if ($cart->quantity + 1 > $product->stock) {
-            return back()->with('error', 'Jumlah melebihi stok yang tersedia.');
+        if ($cart->quantity + $qtyToAdd > $product->stock) {
+            return back()->with('error', "Jumlah total di keranjang melebihi stok yang tersedia (Di keranjang: {$cart->quantity}, Tersedia: {$product->stock} pcs).");
         }
 
-        $cart->increment('quantity');
+        $cart->quantity += $qtyToAdd;
         $cart->save();
 
-        return back()->with('success', 'Produk ditambahkan ke keranjang.');
+        return back()->with('success', "{$qtyToAdd} produk berhasil ditambahkan ke keranjang.");
     }
 
     /** Update kuantitas */
@@ -84,6 +90,19 @@ class CartController extends Controller
             return redirect()->route('cart.index')->with('error', 'Keranjang belanja Anda masih kosong.');
         }
 
+        // Validasi stok produk sebelum checkout
+        foreach ($carts as $cart) {
+            $product = $cart->product;
+            if (!$product || $product->stock <= 0) {
+                return redirect()->route('cart.index')
+                    ->with('error', "Produk \"{$product->name}\" saat ini habis. Mohon sesuaikan keranjang belanja Anda terlebih dahulu.");
+            }
+            if ($cart->quantity > $product->stock) {
+                return redirect()->route('cart.index')
+                    ->with('error', "Jumlah produk \"{$product->name}\" yang dipesan ({$cart->quantity} pcs) melebihi stok yang tersedia (sisa {$product->stock} pcs). Mohon sesuaikan jumlah sebelum checkout.");
+            }
+        }
+
         $message = "Halo Juragan Batik, saya ingin memesan:\n\n";
         $total = 0;
 
@@ -106,6 +125,7 @@ class CartController extends Controller
         $whatsappUrl = "https://wa.me/6281382958012?text=" . urlencode($message);
 
         return redirect()->route('cart.index')
+            ->with('checkout_success', true)
             ->with('success', 'Checkout berhasil! Pesanan Anda telah dicatat dan keranjang belanja telah dikosongkan. Menghubungkan ke WhatsApp...')
             ->with('whatsapp_url', $whatsappUrl);
     }

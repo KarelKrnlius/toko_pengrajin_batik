@@ -16,6 +16,9 @@ class OrderController extends Controller
      */
     public function index(Request $request): View
     {
+        // Eksekusi otomatis pesanan selesai jika melewati batas waktu (12 hari Ambil Mandiri / 21 hari Kurir)
+        Order::autoCompleteExpiredOrders();
+
         $userId = Auth::id();
 
         $query = Order::where('user_id', $userId)
@@ -27,7 +30,7 @@ class OrderController extends Controller
                 $query->where('status', 'shipped')->where('shipping_courier', 'Ambil Mandiri');
             } elseif ($request->status === 'shipped') {
                 $query->where('status', 'shipped')->where('shipping_courier', '!=', 'Ambil Mandiri');
-            } elseif (in_array($request->status, ['pending', 'completed'])) {
+            } elseif (in_array($request->status, ['pending', 'completed', 'cancelled'])) {
                 $query->where('status', $request->status);
             }
         }
@@ -54,6 +57,7 @@ class OrderController extends Controller
             'shipped'      => Order::where('user_id', $userId)->where('status', 'shipped')->where('shipping_courier', '!=', 'Ambil Mandiri')->count(),
             'ready_pickup' => Order::where('user_id', $userId)->where('status', 'shipped')->where('shipping_courier', 'Ambil Mandiri')->count(),
             'completed'    => Order::where('user_id', $userId)->where('status', 'completed')->count(),
+            'cancelled'    => Order::where('user_id', $userId)->where('status', 'cancelled')->count(),
         ];
 
         return view('user.orders.index', compact('orders', 'counts'));
@@ -76,6 +80,10 @@ class OrderController extends Controller
             'status' => 'completed',
         ]);
 
-        return back()->with('success', "Alhamdulillah! Terima kasih telah mengonfirmasi penerimaan pesanan {$order->order_number}. Selamat menikmati karya batik adiluhung Surakarta.");
+        $successMsg = $order->shipping_courier === 'Ambil Mandiri'
+            ? "Alhamdulillah! Terima kasih telah mengonfirmasi bahwa pesanan {$order->order_number} telah diambil di Galeri Juragan Batik. Selamat menikmati karya wastra batik adiluhung Surakarta."
+            : "Alhamdulillah! Terima kasih telah mengonfirmasi penerimaan pesanan {$order->order_number}. Selamat menikmati karya batik adiluhung Surakarta.";
+
+        return back()->with('success', $successMsg);
     }
 }
