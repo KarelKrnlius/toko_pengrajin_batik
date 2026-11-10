@@ -233,7 +233,7 @@ Juragan-Batik/
 ├── app/
 │   ├── Http/
 │   │   ├── Controllers/
-│   │   │   ├── Admin/
+│   │   │   ├── Admin/pad 
 │   │   │   │   ├── FinanceController.php     # Rekap analitik keuangan & ekspor CSV
 │   │   │   │   └── OrderController.php       # Manajemen pesanan & status logistik
 │   │   │   ├── User/

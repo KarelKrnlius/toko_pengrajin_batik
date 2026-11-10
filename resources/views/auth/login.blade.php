@@ -136,7 +136,7 @@
                         </label>
                         <div class="relative">
                             <span class="material-symbols-outlined absolute left-space-md top-1/2 -translate-y-1/2 text-outline text-[20px]">mail</span>
-                            <input type="email" name="email" value="{{ old('email') }}" required autofocus
+                            <input type="email" name="email" id="emailInput" value="{{ old('email') }}" required autofocus
                                    placeholder="email@contoh.com"
                                    class="w-full pl-11 pr-space-md py-3 bg-surface-container-low border border-outline-variant rounded-xl text-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent transition @error('email') border-error ring-1 ring-error @enderror"/>
                         </div>
@@ -164,15 +164,22 @@
                         </div>
                     </div>
 
-                    {{-- Remember me --}}
-                    <label class="flex items-center gap-space-sm cursor-pointer select-none">
-                        <div class="relative">
-                            <input type="checkbox" name="remember" id="rememberMe" class="sr-only peer"/>
-                            <div class="w-10 h-5 bg-surface-container-high rounded-full peer-checked:bg-secondary transition-colors"></div>
-                            <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow peer-checked:translate-x-5 transition-transform"></div>
-                        </div>
-                        <span class="text-sm text-on-surface-variant">Ingat sesi ini</span>
-                    </label>
+                    {{-- Remember me & Lupa Kata Sandi --}}
+                    <div class="flex items-center justify-between">
+                        <label class="flex items-center gap-space-sm cursor-pointer select-none">
+                            <div class="relative">
+                                <input type="checkbox" name="remember" id="rememberMe" class="sr-only peer"/>
+                                <div class="w-10 h-5 bg-surface-container-high rounded-full peer-checked:bg-secondary transition-colors"></div>
+                                <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow peer-checked:translate-x-5 transition-transform"></div>
+                            </div>
+                            <span class="text-sm text-on-surface-variant">Ingat sesi ini</span>
+                        </label>
+                        <button type="button" onclick="lupaPasswordWA()"
+                           class="inline-flex items-center gap-1 text-sm text-secondary hover:text-primary font-semibold transition-colors">
+                            <span class="material-symbols-outlined text-[16px]">lock_reset</span>
+                            Lupa Kata Sandi?
+                        </button>
+                    </div>
 
                     {{-- Submit --}}
                     <button type="submit"
@@ -211,6 +218,16 @@
     </div>
 
     <script>
+        // Lupa kata sandi — kirim WhatsApp ke admin dengan email yang sudah diketik
+        function lupaPasswordWA() {
+            const emailInput = document.getElementById('emailInput');
+            const email = emailInput && emailInput.value.trim()
+                ? emailInput.value.trim()
+                : '(belum diisi)';
+            const pesan = 'Halo Admin Juragan Batik, saya lupa kata sandi akun saya.\n\nEmail saya: ' + email + '\n\nMohon bantuan untuk reset password. Terima kasih.';
+            window.open('https://wa.me/6281382958012?text=' + encodeURIComponent(pesan), '_blank');
+        }
+
         // Toggle show/hide password
         document.getElementById('togglePassword').addEventListener('click', function() {
             const input = document.getElementById('passwordInput');

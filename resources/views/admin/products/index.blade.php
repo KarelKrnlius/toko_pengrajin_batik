@@ -152,7 +152,7 @@
 
     {{-- ══ Toolbar: Search + Filter Kategori + Sort ══ --}}
     <form method="GET" action="{{ route('admin.products.index') }}"
-          class="w-full max-w-full overflow-hidden flex flex-col lg:flex-row gap-space-md mb-space-lg bg-surface-container-lowest rounded-xl shadow-sm p-space-md border border-outline-variant min-w-0">
+          class="w-full max-w-full overflow-visible flex flex-col lg:flex-row gap-space-md mb-space-lg bg-surface-container-lowest rounded-xl shadow-sm p-space-md border border-outline-variant min-w-0">
 
         {{-- Search --}}
         <div class="relative flex-1 min-w-0">
@@ -176,7 +176,7 @@
                 <span class="material-symbols-outlined text-outline text-[18px] pointer-events-none">expand_more</span>
             </button>
             <div id="toolbarCategoryMenu"
-                 class="hidden absolute left-0 top-full mt-1 w-full min-w-[200px] bg-surface-container-lowest border border-outline-variant rounded-lg shadow-xl z-40 max-h-[220px] overflow-y-auto py-1 pr-1.5">
+                 class="hidden absolute left-0 top-full mt-1 w-full min-w-[200px] bg-surface-container-lowest border border-outline-variant rounded-lg shadow-xl z-50 max-h-[220px] overflow-y-auto py-1 pr-1.5">
                 <div onclick="selectToolbarCategory('', 'Semua Kategori')"
                      class="px-3 py-2 text-sm text-on-surface hover:bg-surface-container cursor-pointer transition-colors flex items-center justify-between {{ !request('category') ? 'bg-surface-container text-primary font-bold' : '' }}">
                     <span>Semua Kategori</span>
