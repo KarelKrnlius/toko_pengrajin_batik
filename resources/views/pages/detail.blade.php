@@ -118,10 +118,6 @@
                     <div class="flex flex-col gap-1">
                         <div class="flex items-center justify-between">
                             <span class="text-[10px] tracking-[0.2em] text-secondary font-bold uppercase">{{ $product->category->name ?? 'BATIK' }}</span>
-                            <div class="flex items-center gap-1 bg-surface-container px-2 py-0.5 rounded-full">
-                                <span class="material-symbols-outlined text-[14px] text-secondary" style="font-variation-settings:'FILL' 1;">star</span>
-                                <span class="text-[11px] font-bold">5.0</span>
-                            </div>
                         </div>
                         <h1 class="font-headline-sm text-lg sm:text-xl font-bold text-primary leading-snug">{{ $product->name }}</h1>
                     </div>

@@ -3,8 +3,8 @@
 
 @section('content')
 {{-- ══ Admin Header ══ --}}
-<div class="w-full bg-gradient-to-r from-primary via-primary-container to-secondary py-8">
-    <div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md">
+<div class="w-full bg-gradient-to-r from-primary via-primary-container to-secondary py-8 overflow-hidden">
+    <div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md min-w-0">
         <div>
             <div class="flex items-center gap-2 mb-1">
                 <a href="{{ route('admin.orders.index') }}" class="text-secondary-fixed hover:text-white transition-colors flex items-center gap-1 text-xs font-bold tracking-wider uppercase">
@@ -30,7 +30,7 @@
 </div>
 
 {{-- Floating Toast Notification --}}
-<div id="toastNotification" class="fixed top-6 right-6 z-50 transform -translate-y-6 opacity-0 pointer-events-none transition-all duration-300 max-w-md bg-error text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3">
+<div id="toastNotification" class="fixed top-4 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md z-50 transform -translate-y-6 opacity-0 pointer-events-none transition-all duration-300 bg-error text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3">
     <span class="material-symbols-outlined text-white text-[24px] flex-shrink-0" id="toastIcon">warning</span>
     <div id="toastMessage" class="text-sm font-semibold">Pesanan harus memiliki minimal satu produk.</div>
     <button type="button" onclick="hideToast()" class="ml-2 text-white/80 hover:text-white">
@@ -38,7 +38,7 @@
     </button>
 </div>
 
-<div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin py-space-xl">
+<div class="w-full max-w-[1440px] mx-auto px-margin-mobile lg:px-margin py-space-xl">
 
     {{-- Error Alert --}}
     @if ($errors->any())
@@ -58,7 +58,7 @@
     <form action="{{ route('admin.orders.store') }}" method="POST" id="orderForm">
         @csrf
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-space-lg">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-space-lg min-w-0">
 
             {{-- ══ SISI KIRI (2 Kolom): Form Input ══ --}}
             <div class="lg:col-span-2 flex flex-col gap-space-lg">
@@ -506,7 +506,7 @@
         if (toastIcon) {
             toastIcon.textContent = isError ? 'warning' : 'check_circle';
         }
-        toast.className = `fixed top-6 right-6 z-50 transform translate-y-0 opacity-100 transition-all duration-300 max-w-md px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 ${
+        toast.className = `fixed top-4 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md z-50 transform translate-y-0 opacity-100 transition-all duration-300 px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 ${
             isError ? 'bg-error text-white' : 'bg-green-700 text-white'
         }`;
         clearTimeout(window.toastTimer);
@@ -633,7 +633,7 @@
                     <span id="prod-subtotal-${index}" class="text-sm font-bold text-secondary block py-2">Rp 0</span>
                 </div>
 
-                <div class="pt-5">
+                <div class="w-full flex justify-end md:w-auto md:pt-5">
                     <button type="button" onclick="removeProductRow('${rowId}')"
                             class="w-8 h-8 rounded-lg bg-surface-container hover:bg-error hover:text-white text-error flex items-center justify-center transition-colors"
                             title="Hapus item ini">

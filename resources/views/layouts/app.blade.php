@@ -127,8 +127,10 @@
 
     <style>
         @layer base {
-            html, body { margin: 0; padding: 0; }
-            body { overscroll-behavior: none; }
+            html, body {
+                margin: 0;
+                padding: 0;
+            }
             main > :first-child { margin-top: 0 !important; }
             main > :last-child  { margin-bottom: 0 !important; }
         }
@@ -160,7 +162,7 @@
     </style>
 
     {{-- Toast Notification Box --}}
-    <div id="appToastContainer" class="fixed top-24 right-5 z-[99999] flex flex-col gap-2 pointer-events-none max-w-sm w-full"></div>
+    <div id="appToastContainer" class="fixed top-24 right-3 sm:right-5 left-3 sm:left-auto z-[99999] flex flex-col gap-2 pointer-events-none max-w-sm sm:w-full"></div>
 
     {{-- Global Confirmation Modal --}}
     <div id="globalConfirmModal" class="fixed inset-0 z-[99999] hidden flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">

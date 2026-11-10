@@ -6,23 +6,31 @@
     /* Range slider */
     input[type=range] {
         -webkit-appearance: none; appearance: none;
-        width: 100%; height: 4px; border-radius: 2px;
+        width: 100%; height: 18px; margin: 0; padding: 0;
         background: transparent; outline: none; pointer-events: none;
     }
     .range-slider {
         position: absolute; pointer-events: none;
-        height: 4px; background: transparent; top: 1px;
+        left: 0; top: 0; width: 100%; height: 18px;
+        margin: 0; padding: 0; background: transparent;
+    }
+    .range-slider::-webkit-slider-runnable-track {
+        background: transparent; border: none; height: 18px;
+    }
+    .range-slider::-moz-range-track {
+        background: transparent; border: none; height: 18px;
     }
     .range-slider::-webkit-slider-thumb {
         -webkit-appearance: none; appearance: none;
-        pointer-events: all; width: 13px; height: 13px;
+        pointer-events: all; width: 15px; height: 15px;
         border-radius: 50%; background: #904c2e; cursor: pointer;
-        border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2);
+        border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25);
+        margin-top: 1.5px;
     }
     .range-slider::-moz-range-thumb {
-        pointer-events: all; width: 13px; height: 13px;
+        pointer-events: all; width: 15px; height: 15px;
         border-radius: 50%; background: #904c2e; cursor: pointer;
-        border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2);
+        border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25);
     }
 
     /* Gambar kartu — rasio 3:4 terjaga, tidak dipotong */
@@ -262,26 +270,26 @@
                         </div>
 
                         {{-- Double Slider --}}
-                        <div class="relative mt-3 mb-1 px-1">
-                            <div class="relative h-1.5 rounded-full bg-outline-variant">
-                                <div id="rangeHighlight" class="absolute h-full rounded-full" style="background:#904c2e;"></div>
+                        <div class="flex flex-col gap-1 mt-3 mb-1">
+                            <div class="relative w-full h-[18px] flex items-center">
+                                <div class="w-full h-1.5 rounded-full bg-outline-variant relative">
+                                    <div id="rangeHighlight" class="absolute h-full rounded-full" style="background:#904c2e;"></div>
+                                </div>
+                                <input type="range" name="price_min" id="rangeMin"
+                                       min="0" max="10000000" step="100000"
+                                       value="{{ request('price_min', 0) }}"
+                                       class="range-slider absolute inset-0 w-full"
+                                       oninput="syncRange()"/>
+                                <input type="range" name="price_max" id="rangeMax"
+                                       min="0" max="10000000" step="100000"
+                                       value="{{ request('price_max', 10000000) }}"
+                                       class="range-slider absolute inset-0 w-full"
+                                       oninput="syncRange()"/>
                             </div>
-                            <div class="flex justify-between mt-1">
+                            <div class="flex justify-between mt-0.5">
                                 <span style="font-size:9px;" class="text-outline font-label-sm">Rp 0</span>
                                 <span style="font-size:9px;" class="text-outline font-label-sm">Rp 10.000.000</span>
                             </div>
-                            <input type="range" name="price_min" id="rangeMin"
-                                   min="0" max="10000000" step="100000"
-                                   value="{{ request('price_min', 0) }}"
-                                   class="range-slider absolute w-full"
-                                   style="top:1px;"
-                                   oninput="syncRange()"/>
-                            <input type="range" name="price_max" id="rangeMax"
-                                   min="0" max="10000000" step="100000"
-                                   value="{{ request('price_max', 10000000) }}"
-                                   class="range-slider absolute w-full"
-                                   style="top:1px;"
-                                   oninput="syncRange()"/>
                         </div>
 
                         <button type="submit"

@@ -3,8 +3,8 @@
 
 @section('content')
 {{-- ══ Admin Header ══ --}}
-<div class="w-full bg-gradient-to-r from-primary via-primary-container to-secondary py-8">
-    <div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md">
+<div class="w-full bg-gradient-to-r from-primary via-primary-container to-secondary py-8 overflow-hidden">
+    <div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md min-w-0">
         <div>
             <span class="font-label-sm text-label-sm text-secondary-fixed uppercase tracking-[0.2em] block mb-1">PORTAL ADMINISTRASI</span>
             <h1 class="font-headline-md text-headline-md text-on-primary font-bold">
@@ -24,7 +24,7 @@
     </div>
 </div>
 
-<div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin py-space-xl">
+<div class="w-full max-w-[1440px] mx-auto px-margin-mobile lg:px-margin py-space-xl">
 
     {{-- Flash Notifications --}}
     @if(session('success'))
@@ -42,7 +42,7 @@
     @endif
 
     {{-- ══ Tab Status Filter Pills ══ --}}
-    <div class="flex items-center gap-2 mb-space-lg overflow-x-auto pb-1">
+    <div class="w-full max-w-full flex items-center gap-2 mb-space-lg overflow-x-auto pb-2 scrollbar-thin">
         <a href="{{ route('admin.orders.index') }}"
            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold tracking-wider uppercase transition-colors shadow-sm {{ !request('status') ? 'bg-primary text-on-primary' : 'bg-surface-container hover:bg-surface-container-high text-on-surface' }}">
             <span>Semua Pesanan</span>
@@ -94,7 +94,7 @@
 
     {{-- ══ Toolbar Filter & Search ══ --}}
     <form method="GET" action="{{ route('admin.orders.index') }}"
-          class="flex flex-col lg:flex-row gap-space-md mb-space-lg bg-surface-container-lowest rounded-xl shadow-sm p-space-md border border-outline-variant">
+          class="w-full max-w-full flex flex-col lg:flex-row gap-space-md mb-space-lg bg-surface-container-lowest rounded-xl shadow-sm p-space-md border border-outline-variant min-w-0">
 
         {{-- Pertahankan filter status jika ada --}}
         @if(request('status'))
@@ -102,7 +102,7 @@
         @endif
 
         {{-- Search Input --}}
-        <div class="relative flex-1 min-w-0">
+        <div class="relative flex-1 min-w-0 w-full">
             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
             <input type="text" name="search" value="{{ request('search') }}"
                    placeholder="Cari No. Pesanan, Resi, Nama, atau No. Telepon..."
@@ -110,10 +110,10 @@
         </div>
 
         {{-- Filter Kurir --}}
-        <div class="relative">
+        <div class="relative w-full sm:w-auto">
             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">local_shipping</span>
             <select name="courier" onchange="this.form.submit()"
-                    class="pl-9 pr-8 py-2.5 bg-surface-container-low border border-outline-variant rounded-lg text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary appearance-none cursor-pointer min-w-[170px]">
+                    class="w-full sm:w-auto sm:min-w-[170px] pl-9 pr-8 py-2.5 bg-surface-container-low border border-outline-variant rounded-lg text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary appearance-none cursor-pointer">
                 <option value="">Semua Kurir</option>
                 <option value="JNE" {{ request('courier') === 'JNE' ? 'selected' : '' }}>JNE</option>
                 <option value="J&T Express" {{ request('courier') === 'J&T Express' ? 'selected' : '' }}>J&T Express</option>
@@ -140,9 +140,9 @@
     </form>
 
     {{-- ══ Tabel Pesanan ══ --}}
-    <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden border border-outline-variant">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+    <div class="w-full max-w-full bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden border border-outline-variant min-w-0">
+        <div class="w-full max-w-full overflow-x-auto">
+            <table class="w-full min-w-[980px] text-left border-collapse table-auto">
                 <thead>
                     <tr class="bg-primary text-on-primary text-xs tracking-wider uppercase">
                         <th class="px-4 py-3.5 text-center" style="width:50px">No</th>
@@ -363,7 +363,7 @@
 
         {{-- Pagination --}}
         @if($orders->hasPages())
-        <div class="px-space-lg py-3 border-t border-surface-container bg-surface-container-low">
+        <div class="px-space-lg py-3 border-t border-surface-container bg-surface-container-low overflow-x-auto">
             {{ $orders->links() }}
         </div>
         @endif
@@ -371,8 +371,8 @@
 </div>
 
 {{-- ══ MODAL LIHAT ALAMAT (Sama seperti Manajemen User) ══ --}}
-<div id="modalAlamat" class="hidden fixed inset-0 z-50 flex items-center justify-center p-space-md bg-primary-container/40 backdrop-blur-sm">
-    <div class="bg-surface-container-lowest max-w-md w-full rounded-xl shadow-2xl overflow-hidden border border-outline-variant">
+<div id="modalAlamat" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-primary-container/40 backdrop-blur-sm">
+    <div class="bg-surface-container-lowest max-w-md w-full max-w-[calc(100vw-2rem)] rounded-xl shadow-2xl overflow-hidden border border-outline-variant">
         <div class="bg-primary px-space-lg py-space-md text-on-primary flex items-center justify-between">
             <div class="flex items-center gap-2 font-bold text-sm">
                 <span class="material-symbols-outlined text-[20px]">home_pin</span>
@@ -395,8 +395,8 @@
 </div>
 
 {{-- ══════════ MODAL UBAH STATUS & INPUT RESI ══════════ --}}
-<div id="modalStatus" class="hidden fixed inset-0 z-50 flex items-center justify-center p-space-md bg-primary-container/40 backdrop-blur-sm">
-    <div class="bg-surface-container-lowest max-w-md w-full rounded-xl shadow-2xl overflow-hidden">
+<div id="modalStatus" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-primary-container/40 backdrop-blur-sm">
+    <div class="bg-surface-container-lowest max-w-md w-full max-w-[calc(100vw-2rem)] rounded-xl shadow-2xl overflow-hidden">
         <div class="bg-primary px-space-lg py-space-md flex items-center justify-between text-on-primary">
             <h3 class="font-headline-sm text-headline-sm flex items-center gap-2">
                 <span class="material-symbols-outlined text-[20px]">edit_note</span>
@@ -461,8 +461,8 @@
 </div>
 
 {{-- ══════════ MODAL BATALKAN PESANAN (TIDAK HAPUS, STOK KEMBALI, MASUK PEMBATALAN) ══════════ --}}
-<div id="modalCancel" class="hidden fixed inset-0 z-50 flex items-center justify-center p-space-md bg-primary-container/40 backdrop-blur-sm">
-    <div class="bg-surface-container-lowest max-w-md w-full rounded-2xl shadow-2xl overflow-hidden border border-outline-variant">
+<div id="modalCancel" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-primary-container/40 backdrop-blur-sm">
+    <div class="bg-surface-container-lowest max-w-md w-full max-w-[calc(100vw-2rem)] rounded-2xl shadow-2xl overflow-hidden border border-outline-variant">
         <div class="bg-gradient-to-r from-red-700 to-red-800 px-space-lg py-space-md text-white flex items-center justify-between">
             <h3 class="font-headline-sm text-headline-sm flex items-center gap-2">
                 <span class="material-symbols-outlined text-[22px]">cancel</span>
@@ -515,8 +515,8 @@
 </div>
 
 {{-- ══════════ MODAL LIHAT ALASAN PEMBATALAN ══════════ --}}
-<div id="modalLihatAlasan" class="hidden fixed inset-0 z-50 flex items-center justify-center p-space-md bg-primary-container/40 backdrop-blur-sm">
-    <div class="bg-surface-container-lowest max-w-md w-full rounded-2xl shadow-2xl overflow-hidden border border-outline-variant">
+<div id="modalLihatAlasan" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-primary-container/40 backdrop-blur-sm">
+    <div class="bg-surface-container-lowest max-w-md w-full max-w-[calc(100vw-2rem)] rounded-2xl shadow-2xl overflow-hidden border border-outline-variant">
         <div class="bg-gradient-to-r from-red-700 to-red-800 px-space-lg py-space-md text-white flex items-center justify-between">
             <h3 class="font-headline-sm text-headline-sm flex items-center gap-2">
                 <span class="material-symbols-outlined text-[22px]">info</span>

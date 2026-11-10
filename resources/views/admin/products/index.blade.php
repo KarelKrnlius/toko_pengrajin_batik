@@ -24,25 +24,48 @@
         position: fixed;
         top: 5.5rem; /* di bawah navbar */
         right: 1.25rem;
+        left: auto;
         z-index: 9999;
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
         pointer-events: none;
+        max-width: calc(100vw - 2.5rem);
+    }
+    @media (max-width: 640px) {
+        #toast-container {
+            right: 0.75rem;
+            left: 0.75rem;
+            max-width: none;
+        }
     }
     .toast {
         pointer-events: all;
         display: flex;
         align-items: center;
         gap: 0.75rem;
-        min-width: 300px;
+        min-width: 280px;
         max-width: 420px;
+        width: 100%;
         padding: 0.875rem 1rem;
         border-radius: 0.75rem;
         box-shadow: 0 8px 24px rgba(49,25,8,.18);
         transform: translateX(120%);
         opacity: 0;
         transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease;
+    }
+    @media (max-width: 640px) {
+        .toast {
+            min-width: 0;
+            max-width: 100%;
+            transform: translateY(-50px);
+        }
+        .toast.show {
+            transform: translateY(0);
+        }
+        .toast.hide {
+            transform: translateY(-50px);
+        }
     }
     .toast.show {
         transform: translateX(0);
@@ -87,8 +110,8 @@
 @section('content')
 
 {{-- ══ Admin Header ══ --}}
-<div class="w-full bg-gradient-to-r from-primary via-primary-container to-secondary py-8">
-    <div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md">
+<div class="w-full bg-gradient-to-r from-primary via-primary-container to-secondary py-8 overflow-hidden">
+    <div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md min-w-0">
         <div>
             <span class="font-label-sm text-label-sm text-secondary-fixed uppercase tracking-[0.2em] block mb-1">PORTAL KURATOR</span>
             <h1 class="font-headline-md text-headline-md text-on-primary font-bold">Manajemen Inventaris Produk</h1>
@@ -123,13 +146,13 @@
     </div>  
 </div>
 
-<div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin py-space-xl">
+<div class="w-full max-w-[1440px] mx-auto px-margin-mobile lg:px-margin py-space-xl">
 
     {{-- Flash Messages — ditangani oleh toast di bawah --}}
 
     {{-- ══ Toolbar: Search + Filter Kategori + Sort ══ --}}
     <form method="GET" action="{{ route('admin.products.index') }}"
-          class="flex flex-col lg:flex-row gap-space-md mb-space-lg bg-surface-container-lowest rounded-xl shadow-sm p-space-md border border-outline-variant">
+          class="w-full max-w-full overflow-hidden flex flex-col lg:flex-row gap-space-md mb-space-lg bg-surface-container-lowest rounded-xl shadow-sm p-space-md border border-outline-variant min-w-0">
 
         {{-- Search --}}
         <div class="relative flex-1 min-w-0">
@@ -140,14 +163,14 @@
         </div>
 
         {{-- Filter Kategori (Scrollable jika > 5) --}}
-        <div class="relative" id="toolbarCategoryDropdownWrap">
+        <div class="relative w-full sm:w-auto" id="toolbarCategoryDropdownWrap">
             <input type="hidden" name="category" id="toolbarCategoryInput" value="{{ request('category') }}">
             @php
                 $selectedCategory = $categories->firstWhere('id', request('category'));
                 $selectedCategoryName = $selectedCategory ? $selectedCategory->name : 'Semua Kategori';
             @endphp
             <button type="button" onclick="toggleToolbarCategoryDropdown()"
-                    class="flex items-center justify-between gap-2 pl-9 pr-3 py-2.5 bg-surface-container-low border border-outline-variant rounded-lg text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary cursor-pointer min-w-[190px] w-full text-left">
+                    class="flex items-center justify-between gap-2 pl-9 pr-3 py-2.5 bg-surface-container-low border border-outline-variant rounded-lg text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary cursor-pointer w-full sm:w-auto sm:min-w-[190px] text-left">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">category</span>
                 <span class="truncate" id="toolbarCategoryLabel">{{ $selectedCategoryName }}</span>
                 <span class="material-symbols-outlined text-outline text-[18px] pointer-events-none">expand_more</span>
@@ -174,10 +197,10 @@
         </div>
 
         {{-- Sort --}}
-        <div class="relative">
+        <div class="relative w-full sm:w-auto">
             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">sort</span>
             <select name="sort"
-                    class="pl-9 pr-8 py-2.5 bg-surface-container-low border border-outline-variant rounded-lg text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary appearance-none cursor-pointer min-w-[180px]">
+                    class="w-full sm:w-auto sm:min-w-[180px] pl-9 pr-8 py-2.5 bg-surface-container-low border border-outline-variant rounded-lg text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary appearance-none cursor-pointer">
                 <option value="terbaru"     {{ $sort === 'terbaru'     ? 'selected' : '' }}>Terbaru</option>
                 <option value="terlama"     {{ $sort === 'terlama'     ? 'selected' : '' }}>Terlama</option>
                 <option value="nama_az"     {{ $sort === 'nama_az'     ? 'selected' : '' }}>Nama A–Z</option>
@@ -224,9 +247,9 @@
     </div>
 
     {{-- ══ Tabel ══ --}}
-    <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden border border-outline-variant">
-        <div class="overflow-x-auto">
-            <table class="w-full table-fixed">
+    <div class="w-full max-w-full bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden border border-outline-variant min-w-0">
+        <div class="w-full max-w-full overflow-x-auto">
+            <table class="w-full min-w-[720px] table-auto">
                 <thead>
                     <tr class="bg-primary text-on-primary">
                         <th class="px-4 py-3 text-center font-label-md text-label-md tracking-wider" style="width:48px">#</th>

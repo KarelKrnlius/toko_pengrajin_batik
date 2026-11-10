@@ -4,7 +4,7 @@
 [![PHP](https://img.shields.io/badge/PHP-8.3%20%7C%208.4-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://php.net)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16+-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-3.x%20CDN-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![License](https://img.shields.io/badge/License-Proprietary-darkred?style=for-the-badge)](#lisensi)
+[![License](https://img.shields.io/badge/License-Propriet ary-darkred?style=for-the-badge)](#lisensi)
 
 > **Platform E-Commerce & Kurasi Batik Warisan Surakarta**  
 > Menghubungkan pecinta wastra nusantara dengan mahakarya batik tulis dan cap autentik langsung dari sentra pengrajin Solo dan Yogyakarta.

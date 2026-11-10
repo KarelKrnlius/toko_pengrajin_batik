@@ -3,8 +3,8 @@
 
 @section('content')
 {{-- ══ Admin Header ══ --}}
-<div class="w-full bg-gradient-to-r from-primary via-primary-container to-secondary py-8">
-    <div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md">
+<div class="w-full bg-gradient-to-r from-primary via-primary-container to-secondary py-8 overflow-hidden">
+    <div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md min-w-0">
         <div>
             <span class="font-label-sm text-label-sm text-secondary-fixed uppercase tracking-[0.2em] block mb-1">PORTAL ADMINISTRASI</span>
             <h1 class="font-headline-md text-headline-md text-on-primary font-bold">
@@ -26,14 +26,14 @@
     </div>
 </div>
 
-<div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin py-space-xl">
+<div class="w-full max-w-[1440px] mx-auto px-margin-mobile lg:px-margin py-space-xl">
 
     {{-- ══ KARTU RINGKASAN METRIK NOMINAL ══ --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-space-lg">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-space-lg min-w-0">
 
         {{-- 1. Pendapatan Masuk (Completed) --}}
-        <div class="p-4 bg-emerald-50/70 border border-emerald-200 rounded-2xl shadow-sm flex items-center justify-between gap-3">
-            <div class="flex flex-col">
+        <div class="p-4 bg-emerald-50/70 border border-emerald-200 rounded-2xl shadow-sm flex items-center justify-between gap-3 min-w-0">
+            <div class="flex flex-col min-w-0">
                 <span class="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">Pendapatan Masuk</span>
                 <span class="font-serif text-xl sm:text-2xl font-bold text-emerald-950 mt-1">
                     Rp {{ number_format($totalPendapatanMasuk, 0, ',', '.') }}
@@ -49,8 +49,8 @@
         </div>
 
         {{-- 2. Pendapatan Pending (Belum Terima) --}}
-        <div class="p-4 bg-amber-50/70 border border-amber-200 rounded-2xl shadow-sm flex items-center justify-between gap-3">
-            <div class="flex flex-col">
+        <div class="p-4 bg-amber-50/70 border border-amber-200 rounded-2xl shadow-sm flex items-center justify-between gap-3 min-w-0">
+            <div class="flex flex-col min-w-0">
                 <span class="text-[11px] font-bold text-amber-800 uppercase tracking-wider">Nominal Pending</span>
                 <span class="font-serif text-xl sm:text-2xl font-bold text-amber-950 mt-1">
                     Rp {{ number_format($totalPendapatanPending, 0, ',', '.') }}
@@ -66,8 +66,8 @@
         </div>
 
         {{-- 3. Total Kain Batik Terjual --}}
-        <div class="p-4 bg-surface-container-low border border-outline-variant/60 rounded-2xl shadow-sm flex items-center justify-between gap-3">
-            <div class="flex flex-col">
+        <div class="p-4 bg-surface-container-low border border-outline-variant/60 rounded-2xl shadow-sm flex items-center justify-between gap-3 min-w-0">
+            <div class="flex flex-col min-w-0">
                 <span class="text-[11px] font-bold text-secondary uppercase tracking-wider"> Batik Terjual</span>
                 <span class="font-serif text-xl sm:text-2xl font-bold text-primary mt-1">
                     {{ number_format($totalPcsTerjual, 0, ',', '.') }} <span class="text-xs font-sans font-normal text-outline">pcs</span>
@@ -83,8 +83,8 @@
         </div>
 
         {{-- 4. Transaksi Dibatalkan --}}
-        <div class="p-4 bg-red-50/70 border border-red-200 rounded-2xl shadow-sm flex items-center justify-between gap-3">
-            <div class="flex flex-col">
+        <div class="p-4 bg-red-50/70 border border-red-200 rounded-2xl shadow-sm flex items-center justify-between gap-3 min-w-0">
+            <div class="flex flex-col min-w-0">
                 <span class="text-[11px] font-bold text-red-800 uppercase tracking-wider">Dibatalkan</span>
                 <span class="font-serif text-xl sm:text-2xl font-bold text-red-950 mt-1">
                     Rp {{ number_format($totalDibatalkan, 0, ',', '.') }}
@@ -102,7 +102,7 @@
     </div>
 
     {{-- ══ FILTER & SEARCH ══ --}}
-    <div class="bg-surface-container-lowest p-4 rounded-2xl shadow-sm border border-outline-variant/60 mb-space-md">
+    <div class="w-full max-w-full bg-surface-container-lowest p-4 rounded-2xl shadow-sm border border-outline-variant/60 mb-space-md min-w-0">
         <form action="{{ route('admin.finance.index') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
             {{-- Rentang Tanggal Mulai --}}
             <div class="lg:col-span-3">
@@ -130,29 +130,31 @@
             </div>
 
             {{-- Search Box & Submit --}}
-            <div class="lg:col-span-3 flex gap-2">
-                <div class="flex-1">
+            <div class="sm:col-span-2 lg:col-span-3 flex flex-col sm:flex-row gap-2">
+                <div class="flex-1 w-full min-w-0">
                     <label class="block text-[11px] font-bold text-outline uppercase tracking-wider mb-1">Cari Transaksi / Motif</label>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="No. pesanan, nama, motif..."
                            class="w-full text-xs py-2 px-3 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface focus:outline-none focus:border-secondary transition">
                 </div>
-                <button type="submit" class="h-9 px-3 sm:px-4 mt-auto rounded-xl bg-primary hover:bg-secondary text-on-primary text-xs font-bold transition flex items-center justify-center gap-1 shadow-sm flex-shrink-0" title="Terapkan Filter">
-                    <span class="material-symbols-outlined text-[16px]">check_circle</span>
-                    <span>Terapkan</span>
-                </button>
-                @if(request()->hasAny(['start_date', 'end_date', 'finance_status', 'search']))
-                <a href="{{ route('admin.finance.index') }}" class="h-9 px-3 mt-auto rounded-xl border border-outline-variant hover:bg-surface-container text-on-surface-variant text-xs font-bold transition flex items-center justify-center flex-shrink-0" title="Reset Filter">
-                    <span class="material-symbols-outlined text-[16px]">restart_alt</span>
-                </a>
-                @endif
+                <div class="flex items-center gap-2 mt-auto">
+                    <button type="submit" class="flex-1 sm:flex-initial h-9 px-4 rounded-xl bg-primary hover:bg-secondary text-on-primary text-xs font-bold transition flex items-center justify-center gap-1 shadow-sm flex-shrink-0 cursor-pointer" title="Terapkan Filter">
+                        <span class="material-symbols-outlined text-[16px]">check_circle</span>
+                        <span>Terapkan</span>
+                    </button>
+                    @if(request()->hasAny(['start_date', 'end_date', 'finance_status', 'search']))
+                    <a href="{{ route('admin.finance.index') }}" class="h-9 px-3 rounded-xl border border-outline-variant hover:bg-surface-container text-on-surface-variant text-xs font-bold transition flex items-center justify-center flex-shrink-0" title="Reset Filter">
+                        <span class="material-symbols-outlined text-[16px]">restart_alt</span>
+                    </a>
+                    @endif
+                </div>
             </div>
         </form>
     </div>
 
     {{-- ══ TABEL DATA KEUANGAN & RINCIAN BARANG TERJUAL (OPSI 1 ROWSPAN MERGED) ══ --}}
-    <div class="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/60 overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
+    <div class="w-full max-w-full bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/60 overflow-hidden min-w-0">
+        <div class="w-full max-w-full overflow-x-auto">
+            <table class="w-full min-w-[1100px] text-left border-collapse text-xs table-auto">
                 <thead>
                     <tr class="bg-surface-container-low text-outline uppercase tracking-wider text-[11px] border-b border-outline-variant">
                         <th class="py-3 px-3 text-center w-12">No</th>
@@ -330,7 +332,7 @@
 
         {{-- Pagination --}}
         @if($orders->hasPages())
-        <div class="p-4 border-t border-outline-variant/60 flex items-center justify-between">
+        <div class="p-4 border-t border-outline-variant/60 flex flex-col sm:flex-row items-center justify-between gap-3 overflow-x-auto">
             <span class="text-xs text-on-surface-variant">
                 Menampilkan <strong>{{ $orders->firstItem() }}</strong> – <strong>{{ $orders->lastItem() }}</strong> dari <strong>{{ $orders->total() }}</strong> transaksi
             </span>

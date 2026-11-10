@@ -21,25 +21,48 @@
         position: fixed;
         top: 5.5rem;
         right: 1.25rem;
+        left: auto;
         z-index: 9999;
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
         pointer-events: none;
+        max-width: calc(100vw - 2.5rem);
+    }
+    @media (max-width: 640px) {
+        #toast-container {
+            right: 0.75rem;
+            left: 0.75rem;
+            max-width: none;
+        }
     }
     .toast {
         pointer-events: all;
         display: flex;
         align-items: center;
         gap: 0.75rem;
-        min-width: 300px;
+        min-width: 280px;
         max-width: 420px;
+        width: 100%;
         padding: 0.875rem 1rem;
         border-radius: 0.75rem;
         box-shadow: 0 8px 24px rgba(49,25,8,.18);
         transform: translateX(120%);
         opacity: 0;
         transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease;
+    }
+    @media (max-width: 640px) {
+        .toast {
+            min-width: 0;
+            max-width: 100%;
+            transform: translateY(-50px);
+        }
+        .toast.show {
+            transform: translateY(0);
+        }
+        .toast.hide {
+            transform: translateY(-50px);
+        }
     }
     .toast.show { transform: translateX(0); opacity: 1; }
     .toast.hide { transform: translateX(120%); opacity: 0; }
@@ -120,7 +143,7 @@
     </div>
 </div>
 
-<div class="max-w-[1440px] mx-auto px-margin-mobile lg:px-margin py-space-xl">
+<div class="w-full max-w-[1440px] mx-auto px-margin-mobile lg:px-margin py-space-xl">
 
     {{-- ══ Tab Pindah Role ══ --}}
     <div class="flex items-center gap-space-sm mb-space-lg">
@@ -138,7 +161,7 @@
 
     {{-- ══ Toolbar: Search + Filter Status + Sort ══ --}}
     <form method="GET" action="{{ route('admin.users.index') }}"
-          class="flex flex-col lg:flex-row gap-space-md mb-space-lg bg-surface-container-lowest rounded-xl shadow-sm p-space-md border border-outline-variant">
+          class="w-full max-w-full overflow-hidden flex flex-col lg:flex-row gap-space-md mb-space-lg bg-surface-container-lowest rounded-xl shadow-sm p-space-md border border-outline-variant">
 
         {{-- Pertahankan role aktif --}}
         <input type="hidden" name="role" value="{{ $role }}"/>
@@ -153,10 +176,10 @@
 
         {{-- Filter Status (hanya untuk role user) --}}
         @if($role === 'user' && $hasIsActive)
-        <div class="relative">
+        <div class="relative w-full sm:w-auto">
             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">filter_list</span>
             <select name="status" onchange="this.form.submit()"
-                    class="pl-9 pr-8 py-2.5 bg-surface-container-low border border-outline-variant rounded-lg text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary appearance-none cursor-pointer min-w-[160px]">
+                    class="w-full sm:w-auto pl-9 pr-8 py-2.5 bg-surface-container-low border border-outline-variant rounded-lg text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary appearance-none cursor-pointer sm:min-w-[160px]">
                 <option value="" {{ !request('status') ? 'selected' : '' }}>Semua Status</option>
                 <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Aktif</option>
                 <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Nonaktif</option>
@@ -166,10 +189,10 @@
         @endif
 
         {{-- Sort --}}
-        <div class="relative">
+        <div class="relative w-full sm:w-auto">
             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">sort</span>
             <select name="sort" onchange="this.form.submit()"
-                    class="pl-9 pr-8 py-2.5 bg-surface-container-low border border-outline-variant rounded-lg text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary appearance-none cursor-pointer min-w-[160px]">
+                    class="w-full sm:w-auto pl-9 pr-8 py-2.5 bg-surface-container-low border border-outline-variant rounded-lg text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary appearance-none cursor-pointer sm:min-w-[160px]">
                 <option value="terbaru" {{ request('sort', 'terbaru') === 'terbaru' ? 'selected' : '' }}>Terbaru</option>
                 <option value="terlama" {{ request('sort') === 'terlama' ? 'selected' : '' }}>Terlama</option>
                 <option value="nama_az" {{ request('sort') === 'nama_az' ? 'selected' : '' }}>Nama A–Z</option>
@@ -225,9 +248,9 @@
     @endif
 
     {{-- ══ Tabel ══ --}}
-    <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden border border-outline-variant">
-        <div class="overflow-x-auto">
-            <table class="w-full">
+    <div class="w-full max-w-full bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden border border-outline-variant">
+        <div class="w-full overflow-x-auto">
+            <table class="w-full min-w-[620px] table-auto">
                 <thead>
                     <tr class="bg-primary text-on-primary">
                         <th class="px-3 py-3 text-center" style="width:44px">
